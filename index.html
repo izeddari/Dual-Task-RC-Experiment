@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Sentence Comprehension with Digit Memory (Final + Catch Trials)</title>
+  <title>Sentence Comprehension with Digit Memory (Final + Two‑Row Logging)</title>
   <script src="https://unpkg.com/jspsych@7.3.4/dist/index.browser.min.js"></script>
   <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
   <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.0.2"></script>
@@ -144,7 +144,7 @@
     
     console.log(`blockOrder=${blockOrder}, setAssignment=${setAssignment}, listType=${listType}, keys=${keyMapping}`);
 
-    const totalQuestions = 4 + 4 + 84; // practice + main (including catch)
+    const totalQuestions = 4 + 4 + 84; // practice baseline + practice dual + main (including catch)
     let questionsAnswered = 0;
     let counterDiv = null;
     function createCounter() { counterDiv = document.createElement('div'); counterDiv.className = 'counter'; counterDiv.textContent = `Progress: 0 / ${totalQuestions}`; document.body.appendChild(counterDiv); }
@@ -202,7 +202,7 @@
       ["The witness of the drivers who bought herself a coffee waited for the police.", "The witness of the drivers who bought themselves a coffee waited for the police.", "Who bought coffee? FIRST noun (witness) or SECOND noun (drivers)?", "NP1", "NP2"]
     ];
 
-    // Build experimental items based on listType
+    // Build experimental items based on listType (A/B)
     const experimentalItems = [];
     for (let i = 0; i < rawPairs.length; i++) {
       const [ha, la, q, correctHA, correctLA] = rawPairs[i];
@@ -347,7 +347,7 @@
     ];
     function shuffleDigits(arr) { let copy = [...arr]; for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; } return copy; }
 
-    // ==================== TRIAL COMPONENTS ====================
+    // ==================== TRIAL COMPONENTS (CORRECTED LOGGING) ====================
     function makeBaselineComponents(item, trialNum, block, isPractice = false) {
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS", data: { trial_type: 'fixation' } };
       const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:36px; text-align:center; line-height:1.4;">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
@@ -360,9 +360,34 @@
           let resp = data.response === 'c' ? 'NP1' : 'NP2';
           if (keyMapping === 'swapped') resp = resp === 'NP1' ? 'NP2' : 'NP1';
           const corr = (item.correct !== null) ? (resp === item.correct) : null;
+          
+          // Get participant data from stored properties (not from all data to avoid stimulus)
           const demo = jsPsych.data.get().values().find(d => d.participant) || {};
-          const tdata = { ...demo, auto_participant_id: autoParticipantID, list_type: listType, key_mapping: keyMapping, block, trial_num: trialNum, sentence: item.sentence, question: item.question, correct_answer: item.correct, response: resp, accuracy: corr, is_dual_task: false, rt_from_question: data.rt, block_order: blockOrder, set_assignment: setAssignment, item_type: item.type || 'main' };
-          Object.assign(data, tdata);
+          
+          const tdata = {
+            participant: demo.participant || '',
+            auto_participant_id: autoParticipantID,
+            age: demo.age || '',
+            gender: demo.gender || '',
+            education: demo.education || '',
+            handedness: demo.handedness || '',
+            native_language: demo.native_language || '',
+            other_languages: demo.other_languages || '',
+            list_type: listType,
+            key_mapping: keyMapping,
+            block_order: blockOrder,
+            set_assignment: setAssignment,
+            block: block,
+            trial_num: trialNum,
+            sentence: item.sentence,
+            question: item.question,
+            correct_answer: item.correct,
+            response: resp,
+            accuracy: corr,
+            is_dual_task: false,
+            rt_from_question: data.rt,
+            item_type: item.type || 'main'
+          };
           sendToGoogleSheets(tdata);
           incrementCounter();
           if (isPractice) window.lastPractice = { correct: corr, correctAnswer: item.correct };
@@ -374,6 +399,8 @@
     
     function makeDualComponents(item, trialNum, block, digitPool, usedSet, isPractice = false) {
       let currentDigits = null;
+      let comprehensionData = null;  // store comprehension data to be used after recall
+      
       const digPres = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: () => {
@@ -390,6 +417,7 @@
       const blank1 = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 500, choices: "NO_KEYS" };
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS" };
       const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:36px; text-align:center; line-height:1.4;">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
+      
       const ques = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `<div style="font-size:32px; text-align:center; line-height:1.4;">${item.question}</div>`,
@@ -399,10 +427,36 @@
           let resp = data.response === 'c' ? 'NP1' : 'NP2';
           if (keyMapping === 'swapped') resp = resp === 'NP1' ? 'NP2' : 'NP1';
           const corr = (item.correct !== null) ? (resp === item.correct) : null;
+          
           const demo = jsPsych.data.get().values().find(d => d.participant) || {};
-          const tdata = { ...demo, auto_participant_id: autoParticipantID, list_type: listType, key_mapping: keyMapping, block, trial_num: trialNum, sentence: item.sentence, question: item.question, correct_answer: item.correct, response: resp, accuracy: corr, is_dual_task: true, digit_sequence: currentDigits ? currentDigits.join('') : null, rt_from_question: data.rt, block_order: blockOrder, set_assignment: setAssignment, item_type: item.type || 'main' };
-          Object.assign(data, tdata);
-          sendToGoogleSheets(tdata);
+          
+          comprehensionData = {
+            participant: demo.participant || '',
+            auto_participant_id: autoParticipantID,
+            age: demo.age || '',
+            gender: demo.gender || '',
+            education: demo.education || '',
+            handedness: demo.handedness || '',
+            native_language: demo.native_language || '',
+            other_languages: demo.other_languages || '',
+            list_type: listType,
+            key_mapping: keyMapping,
+            block_order: blockOrder,
+            set_assignment: setAssignment,
+            block: block,
+            trial_num: trialNum,
+            sentence: item.sentence,
+            question: item.question,
+            correct_answer: item.correct,
+            response: resp,
+            accuracy: corr,
+            is_dual_task: true,
+            rt_from_question: data.rt,
+            digit_sequence: currentDigits ? currentDigits.join('') : null,
+            item_type: item.type || 'main'
+          };
+          
+          sendToGoogleSheets(comprehensionData);
           incrementCounter();
           if (isPractice) window.lastPractice = { correct: corr, correctAnswer: item.correct };
         }
@@ -417,9 +471,7 @@
           <script>
             (function() {
               var input = document.getElementById('digitRecallInput');
-              if (input) {
-                setTimeout(function() { input.focus(); }, 10);
-              }
+              if (input) { setTimeout(function() { input.focus(); }, 10); }
             })();
           <\/script>
         </div>`,
@@ -427,7 +479,29 @@
           const recalled = data.response.recall || '';
           const presented = currentDigits ? currentDigits.join('') : '';
           const recCorrect = (presented === recalled);
-          jsPsych.data.addProperties({ recall_correct: recCorrect, recalled_digits: recalled });
+          
+          // Send recall row linked by trial_num and block
+          if (comprehensionData) {
+            const recallRow = {
+              ...comprehensionData,
+              recall_correct: recCorrect,
+              recalled_digits: recalled,
+              recall_rt: data.rt,
+              is_recall_row: true
+            };
+            sendToGoogleSheets(recallRow);
+          } else {
+            // Fallback: send minimal recall row
+            sendToGoogleSheets({
+              trial_num: trialNum,
+              block: block,
+              recall_correct: recCorrect,
+              recalled_digits: recalled,
+              recall_rt: data.rt,
+              is_recall_row: true,
+              auto_participant_id: autoParticipantID
+            });
+          }
           if (isPractice) window.lastRecallCorrect = recCorrect;
         }
       };
@@ -521,7 +595,7 @@
     // Baseline practice (no digits)
     timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Part with sentences only – practice<br><br>Press SPACE</div>', choices: [' '] });
     for (let i = 0; i < practiceTrials.length; i++) {
-      let comps = makeBaselineComponents(practiceTrials[i], i + 1, 'baseline_practice', true);
+      let comps = makeBaselineComponents(practiceTrials[i], i + 1, 'practice_baseline', true);
       let fb = { type: jsPsychHtmlKeyboardResponse, stimulus: () => { let last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : `<div class="feedback-incorrect">✗ Correct answer: ${last.correctAnswer}</div>`; }, trial_duration: 1500, choices: "NO_KEYS" };
       timeline.push(...comps.slice(0, 3), fb, comps[3]);
     }
