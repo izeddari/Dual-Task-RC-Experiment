@@ -9,7 +9,7 @@
   <script src="https://unpkg.com/@jspsych/plugin-call-function@1.1.1"></script>
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet">
   <style>
-    body, .jspsych-display-element, .instruction-text, .consent-text, p, h1, h2, h3, h4 { line-height: 1.5 !important; }
+    body, .jspsych-display-element, .instruction-text, .consent-card, p, h1, h2, h3, h4 { line-height: 1.5 !important; }
     .fixation { font-size: 56px; text-align: center; margin-top: 35vh; color: #2c3e66; }
     .feedback-correct { color: #2a7f2a; font-size: 36px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .feedback-incorrect { color: #b13b3b; font-size: 36px; font-weight: bold; text-align: center; margin-top: 40vh; }
@@ -45,8 +45,6 @@
     .recall-input { font-size: 48px; text-align: center; width: 250px; padding: 15px; border-radius: 20px; border: 2px solid #ccc; font-family: monospace; letter-spacing: 8px; }
     
     .instruction-text { font-size: 26px; max-width: 900px; margin: 0 auto; text-align: center; }
-    .consent-text { font-size: 20px; max-width: 800px; margin: 0 auto; }
-    
     .consent-card {
       max-width: 750px;
       margin: 20px auto;
@@ -60,50 +58,12 @@
       max-height: 85vh;
       overflow-y: auto;
     }
-    .consent-card h3 {
-      text-align: center;
-      margin-top: 0;
-      margin-bottom: 16px;
-      font-size: 1.6rem;
-    }
-    .consent-card p {
-      margin-bottom: 12px;
-    }
-    .consent-card ul {
-      margin: 8px 0;
-      padding-left: 20px;
-    }
-    .consent-card .highlight {
-      background-color: #f0f7ff;
-      padding: 8px 12px;
-      border-radius: 12px;
-      font-weight: 500;
-    }
-    .consent-card .agreement {
-      text-align: center;
-      margin-top: 20px;
-      font-weight: bold;
-      font-size: 1.2rem;
-    }
-    .btn-prompt {
-      font-family: monospace;
-      background: #e9ecef;
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-weight: bold;
-    }
-    .warning-box {
-      background-color: #fff3cd;
-      border: 2px solid #ffeeba;
-      border-radius: 16px;
-      padding: 20px;
-      margin: 30px auto;
-      max-width: 600px;
-      text-align: center;
-      color: #856404;
-      font-size: 20px;
-    }
+    .consent-card h3 { text-align: center; margin-top: 0; margin-bottom: 16px; font-size: 1.6rem; }
+    .consent-card p { margin-bottom: 12px; }
+    .consent-card .highlight { background-color: #f0f7ff; padding: 8px 12px; border-radius: 12px; font-weight: 500; }
+    .consent-card .agreement { text-align: center; margin-top: 20px; font-weight: bold; font-size: 1.2rem; }
+    .btn-prompt { font-family: monospace; background: #e9ecef; display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: bold; }
+    .warning-box { background-color: #fff3cd; border: 2px solid #ffeeba; border-radius: 16px; padding: 20px; margin: 30px auto; max-width: 600px; text-align: center; color: #856404; font-size: 20px; }
   </style>
 </head>
 <body>
@@ -145,7 +105,7 @@
     
     console.log(`blockOrder=${blockOrder}, setAssignment=${setAssignment}, listType=${listType}, keys=${keyMapping}`);
 
-    const totalQuestions = 4 + 4 + 84;
+    const totalQuestions = 4 + 4 + 84; // practice baseline + practice dual + main
     let questionsAnswered = 0;
     let counterDiv = null;
     function createCounter() { counterDiv = document.createElement('div'); counterDiv.className = 'counter'; counterDiv.textContent = `Progress: 0 / ${totalQuestions}`; document.body.appendChild(counterDiv); }
@@ -167,7 +127,7 @@
       { sentence: "The cat chased the mouse that was hiding under the couch.", question: "What was hiding under the couch? FIRST noun (cat) or SECOND noun (mouse)?", correct: "NP2" }
     ];
 
-    // ----- 32 Experimental Pairs -----
+    // ----- 32 Experimental Pairs (full) -----
     const rawPairs = [
       ["The girl asked the driver of the players who was talking to an old woman.", "The girl asked the driver of the players who were talking to an old woman.", "Who was talking to an old woman? FIRST noun (driver) or SECOND noun (players)?", "NP1", "NP2"],
       ["The father of the kids who found himself broke lost his job.", "The father of the kids who found themselves broke lost his job.", "Who was broke? FIRST noun (father) or SECOND noun (kids)?", "NP1", "NP2"],
@@ -280,13 +240,18 @@
     ];
     const fillers = fillerRaw.map(([s, q, c]) => ({ sentence: s, question: q, correct: c, type: 'filler' }));
 
-    // ==================== CATCH TRIALS ====================
+    // ==================== NEW CATCH TRIALS (unambiguous, definitional) ====================
     const catchTrialsPool = [
-      { sentence: "The sky is green.", question: "Is this statement true? Press C for Yes, M for No.", correct: "NP2", type: 'catch' },
-      { sentence: "Water is wet.", question: "Is this statement true? Press C for Yes, M for No.", correct: "NP1", type: 'catch' },
-      { sentence: "February has 30 days.", question: "Is this statement true? Press C for Yes, M for No.", correct: "NP2", type: 'catch' },
-      { sentence: "The Earth orbits the Sun.", question: "Is this statement true? Press C for Yes, M for No.", correct: "NP1", type: 'catch' }
+      // NP1 correct (first noun correct)
+      { sentence: "The sun is a star, but the moon is not a star.", question: "Which is a star? FIRST noun (sun) or SECOND noun (moon)?", correct: "NP1", type: 'catch' },
+      // NP2 correct (second noun correct) – fish does not have feathers, bird has feathers
+      { sentence: "A fish does not have feathers, but a bird has feathers.", question: "Which has feathers? FIRST noun (fish) or SECOND noun (bird)?", correct: "NP2", type: 'catch' },
+      // NP1 correct (first noun correct) – bird has feathers
+      { sentence: "A bird has feathers, but a fish does not have feathers.", question: "Which has feathers? FIRST noun (bird) or SECOND noun (fish)?", correct: "NP1", type: 'catch' },
+      // NP2 correct (second noun correct) – moon is not a star, sun is a star
+      { sentence: "The moon is not a star, but the sun is a star.", question: "Which is a star? FIRST noun (moon) or SECOND noun (sun)?", correct: "NP2", type: 'catch' }
     ];
+    // Distribution: baseline gets first catch trial (NP1), dual gets second and third (NP2, NP1)
     const baselineCatch = [catchTrialsPool[0]];
     const dualCatch = [catchTrialsPool[1], catchTrialsPool[2]];
 
@@ -302,18 +267,14 @@
     const shuffledExp = shuffle([...experimentalItems]);
     const expSet1 = shuffledExp.slice(0, 16);
     const expSet2 = shuffledExp.slice(16, 32);
-    
     const shuffledAmbig = shuffle([...ambiguousItems]);
     const ambigSet1 = shuffledAmbig.slice(0, 16);
     const ambigSet2 = shuffledAmbig.slice(16, 32);
-    
     const shuffledFillers = shuffle([...fillers]);
     const fillerSet1 = shuffledFillers.slice(0, 10);
     const fillerSet2 = shuffledFillers.slice(10, 20);
-    
     const completeSet1 = shuffle([...expSet1, ...ambigSet1, ...fillerSet1]);
     const completeSet2 = shuffle([...expSet2, ...ambigSet2, ...fillerSet2]);
-    
     let baselineSetRaw, dualSetRaw;
     if (setAssignment === 'normal') {
       baselineSetRaw = [...completeSet1];
@@ -322,7 +283,6 @@
       baselineSetRaw = [...completeSet2];
       dualSetRaw = [...completeSet1];
     }
-    
     function insertCatchTrials(itemArray, catchTrials, positions) {
       const result = [...itemArray];
       for (let i = positions.length - 1; i >= 0; i--) {
@@ -333,10 +293,9 @@
       }
       return result;
     }
-    
     const baselineSet = insertCatchTrials(baselineSetRaw, baselineCatch, [20]);
     const dualSet = insertCatchTrials(dualSetRaw, dualCatch, [14, 28]);
-    
+
     // ==================== DIGIT SEQUENCES (60) ====================
     const digitSequences = [
       [2,5,7,1], [4,9,3,6], [8,1,4,2], [7,3,9,5], [6,2,8,4], [1,7,4,9], [3,8,2,6], [5,1,9,3], [9,4,6,2], [2,8,5,7],
@@ -348,7 +307,7 @@
     ];
     function shuffleDigits(arr) { let copy = [...arr]; for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; } return copy; }
 
-    // ==================== TRIAL COMPONENTS (CORRECTED LOGGING) ====================
+    // ==================== TRIAL COMPONENTS (two‑row logging, baseline/dual) ====================
     function makeBaselineComponents(item, trialNum, block, isPractice = false) {
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS", data: { trial_type: 'fixation' } };
       const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:36px; text-align:center; line-height:1.4;">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
@@ -503,37 +462,27 @@
     // ==================== BUILD TIMELINE ====================
     let timeline = [];
     
-    // Consent (redesigned card with researcher email)
+    // Consent (redesigned card)
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
-      stimulus: `
-        <div class="consent-card">
-          <h3>PARTICIPANT INFORMATION AND CONSENT FORM</h3>
-          <p>You are invited to participate in a research study on <strong>sentence comprehension</strong>.</p>
-          <p>The task involves reading sentences and answering questions. The experiment will take approximately <strong>20 minutes</strong> to complete.</p>
-          
-          <p><strong>Participation is voluntary.</strong> You may stop the experiment and close your browser at any time without penalty. Any responses you have already submitted before exiting will still be stored, but you may request deletion afterward using your Participant ID (see below).</p>
-          
-          <p>This study involves no known risks beyond those encountered in everyday computer use. While there is no direct benefit to participants, the study may contribute to research on language processing.</p>
-          
-          <div class="highlight">
-            <p><strong>No personal identifying information (such as your name or email address) will be collected.</strong> You will be asked to create a non‑identifying Participant ID of your choice (for example, <em>BlueTiger27</em>). Please do not use your real name. <strong>Keep this ID</strong> – you will need it if you later wish to request deletion of your data.</p>
-          </div>
-          
-          <p>Your responses will be stored securely in a password‑protected Google Sheet accessible only to the researcher through an institutionally affiliated email account.</p>
-          <p>After completing the experiment, you may request deletion of your data by emailing <strong>i.zeddari@um5r.ac.ma</strong> and providing your Participant ID.</p>
-          <p>If you have any questions about this study, please contact: <strong>i.zeddari@um5r.ac.ma</strong></p>
-          
-          <p><strong>By continuing, you confirm that:</strong><br>
-          • you are voluntarily agreeing to participate;<br>
-          • you are at least 18 years old.</p>
-          
-          <div class="agreement">
-            Do you agree to participate?<br>
-            Press <span class="btn-prompt">C</span> for Yes &nbsp;&nbsp;&nbsp; Press <span class="btn-prompt">M</span> for No
-          </div>
+      stimulus: `<div class="consent-card">
+        <h3>PARTICIPANT INFORMATION AND CONSENT FORM</h3>
+        <p>You are invited to participate in a research study on <strong>sentence comprehension</strong>.</p>
+        <p>The task involves reading sentences and answering questions. The experiment will take approximately <strong>20 minutes</strong> to complete.</p>
+        <p><strong>Participation is voluntary.</strong> You may stop the experiment and close your browser at any time without penalty. Any responses you have already submitted before exiting will still be stored, but you may request deletion afterward using your Participant ID (see below).</p>
+        <p>This study involves no known risks beyond those encountered in everyday computer use. While there is no direct benefit to participants, the study may contribute to research on language processing.</p>
+        <div class="highlight">
+          <p><strong>No personal identifying information (such as your name or email address) will be collected.</strong> You will be asked to create a non‑identifying Participant ID of your choice (for example, <em>BlueTiger27</em>). Please do not use your real name. <strong>Keep this ID</strong> – you will need it if you later wish to request deletion of your data.</p>
         </div>
-      `,
+        <p>Your responses will be stored securely in a password‑protected Google Sheet accessible only to the researcher through an institutionally affiliated email account.</p>
+        <p>After completing the experiment, you may request deletion of your data by emailing <strong>i.zeddari@um5r.ac.ma</strong> and providing your Participant ID.</p>
+        <p>If you have any questions about this study, please contact: <strong>i.zeddari@um5r.ac.ma</strong></p>
+        <p><strong>By continuing, you confirm that:</strong><br> • you are voluntarily agreeing to participate;<br> • you are at least 18 years old.</p>
+        <div class="agreement">
+          Do you agree to participate?<br>
+          Press <span class="btn-prompt">C</span> for Yes &nbsp;&nbsp;&nbsp; Press <span class="btn-prompt">M</span> for No
+        </div>
+      </div>`,
       choices: ['c', 'm'],
       on_finish: (data) => {
         if (data.response !== 'c') {
@@ -603,15 +552,16 @@
     
     timeline.push({ type: jsPsychCallFunction, func: () => createCounter() });
     
-    // Baseline practice (no digits)
-    timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Part with sentences only – practice<br><br>Press SPACE</div>', choices: [' '] });
-    for (let i = 0; i < practiceTrials.length; i++) {
-      let comps = makeBaselineComponents(practiceTrials[i], i + 1, 'practice_baseline', true);
-      let fb = { type: jsPsychHtmlKeyboardResponse, stimulus: () => { let last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : `<div class="feedback-incorrect">✗ Correct answer: ${last.correctAnswer}</div>`; }, trial_duration: 1500, choices: "NO_KEYS" };
-      timeline.push(...comps.slice(0, 3), fb, comps[3]);
-    }
-    
+    // ==================== BLOCK DEFINITIONS (practice + main) ====================
     function addBaselineBlock() {
+      // Baseline practice (no digits)
+      timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Part with sentences only – practice<br><br>Press SPACE</div>', choices: [' '] });
+      for (let i = 0; i < practiceTrials.length; i++) {
+        let comps = makeBaselineComponents(practiceTrials[i], i + 1, 'practice_baseline', true);
+        let fb = { type: jsPsychHtmlKeyboardResponse, stimulus: () => { let last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : `<div class="feedback-incorrect">✗ Correct answer: ${last.correctAnswer}</div>`; }, trial_duration: 1500, choices: "NO_KEYS" };
+        timeline.push(...comps.slice(0, 3), fb, comps[3]);
+      }
+      // Baseline main trials
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Now the main sentences (no digits)<br><br>Press SPACE</div>', choices: [' '] });
       for (let i = 0; i < baselineSet.length; i++) {
         timeline.push(...makeBaselineComponents(baselineSet[i], i + 1, 'baseline_main', false));
@@ -619,6 +569,7 @@
     }
     
     function addDualBlock() {
+      // Dual practice (with digits and feedback)
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:32px;">Part with digit memory task – practice<br><br>You will see 4 digits, then sentence, then answer, then type the digits.<br>After each trial you will see feedback for digit recall.<br><br>Press SPACE</div>', choices: [' '] });
       let practiceUsed = new Set();
       let practicePool = shuffleDigits([...digitSequences]);
@@ -626,6 +577,7 @@
         let comps = makeDualComponents(practiceTrials[i], i + 1, 'dual_practice', practicePool, practiceUsed, true);
         timeline.push(...comps);
       }
+      // Dual main trials (no digit feedback)
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Now the main sentences with digit memory task<br><br>Remember the digits, read the sentence, answer, then type the digits.<br><br>Press SPACE</div>', choices: [' '] });
       let mainUsed = new Set();
       let mainPool = shuffleDigits([...digitSequences]);
@@ -634,6 +586,7 @@
       }
     }
     
+    // Order blocks according to counterbalanced blockOrder
     if (blockOrder === 'baseline_first') {
       addBaselineBlock();
       addDualBlock();
