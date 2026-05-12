@@ -522,11 +522,18 @@
     // ==================== BUILD TIMELINE ====================
     let timeline = [];
     
-    // Consent - 20 minutes
+    // Consent - UPDATED VERSION
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
-      stimulus: `<div class="consent-text"><h3>CONSENT & WELCOME</h3><p>You are invited to participate in a study on sentence comprehension.</p><p>The task involves reading sentences and answering questions.</p><p>The experiment will take approximately <strong>20 minutes</strong> to complete.</p><p>No personal identifying information will be collected.</p><p>If you wish to exit at any time, simply close your browser window.</p><p>Do you agree to participate?</p><p>Press SPACE to continue.</p></div>`,
-      choices: [' ']
+      stimulus: `<div class="consent-text"><h3>PARTICIPANT INFORMATION AND CONSENT FORM</h3><p>You are invited to participate in a research study on sentence comprehension.</p><p>The task involves reading sentences and answering questions. The experiment will take approximately 20 minutes to complete.</p><p><strong>Participation is voluntary.</strong> You may stop the experiment and close your browser at any time without penalty. Any responses you have already submitted before exiting will still be stored, but you may request deletion afterward using your Participant ID (see below).</p><p>This study involves no known risks beyond those encountered in everyday computer use. While there is no direct benefit to participants, the study may contribute to research on language processing.</p><p><strong>No personal identifying information (such as your name or email address) will be collected.</strong> You will be asked to create a non‑identifying Participant ID of your choice (for example, BlueTiger27). Please do not use your real name. <strong>Keep this ID</strong> – you will need it if you later wish to request deletion of your data.</p><p>Your responses will be stored securely in a password‑protected Google Sheet accessible only to the researcher through an institutionally affiliated email account.</p><p>After completing the experiment, you may request deletion of your data by emailing <strong>[researcher email]</strong> and providing your Participant ID.</p><p>If you have any questions about this study, please contact: <strong>[researcher email]</strong></p><p><strong>By continuing, you confirm that:</strong><br>• you are voluntarily agreeing to participate;<br>• you are at least 18 years old.</p><p><strong>Do you agree to participate?</strong><br>Press <strong>C</strong> for Yes, <strong>M</strong> for No.</p></div>`,
+      choices: ['c', 'm'],
+      on_finish: (data) => {
+        if (data.response !== 'c') {
+          // Participant declined or pressed M
+          jsPsych.finishTrial();
+          jsPsych.endExperiment('You have declined to participate. Thank you for your time.');
+        }
+      }
     });
     
     // Demographics (compact)
@@ -534,7 +541,7 @@
       type: jsPsychSurveyHtmlForm,
       preamble: '<h3 style="text-align:center;">Participant Information</h3>',
       html: `<div class="demographics-compact">
-          <div class="form-group"><label>Participant ID:</label><input type="text" name="participant" required placeholder="any code"></div>
+          <div class="form-group"><label>Participant ID (create a non‑identifying ID, e.g., BlueTiger27):</label><input type="text" name="participant" required placeholder="e.g., BlueTiger27"></div>
           <div class="form-group"><label>Age:</label><input type="number" name="age" required></div>
           <div class="form-group"><label>Gender:</label><select name="gender" required><option value="">--Select--</option><option>Female</option><option>Male</option><option>Non-binary</option></select></div>
           <div class="form-group"><label>Highest academic level:</label><input type="text" name="education" required placeholder="e.g., Bachelor, Master, PhD"></div>
