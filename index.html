@@ -10,7 +10,14 @@
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet">
   <style>
     body, .jspsych-display-element, .instruction-text, .consent-card, p, h1, h2, h3, h4 { line-height: 1.5 !important; }
-    .fixation { font-size: 56px; text-align: center; margin-top: 35vh; color: #2c3e66; }
+    
+    /* Fixation cross – now at natural vertical center (same as sentence) */
+    .fixation { 
+      font-size: 56px; 
+      text-align: center; 
+      /* No margin-top; jsPsych centers it automatically */
+    }
+    
     .feedback-correct { color: #2a7f2a; font-size: 36px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .feedback-incorrect { color: #b13b3b; font-size: 36px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .feedback-digit { color: #1e5f8e; font-size: 28px; font-weight: bold; text-align: center; margin-top: 40vh; }
@@ -118,7 +125,7 @@
         .catch(err => console.error("Send error:", err));
     }
 
-    // ==================== STIMULI (full data, same as previous final version) ====================
+    // ==================== STIMULI ====================
     const practiceTrials = [
       { sentence: "The manager of the employees who was reading a book stayed late.", question: "Who was reading a book? FIRST noun (manager) or SECOND noun (employees)?", correct: "NP1" },
       { sentence: "The supervisor of the workers who were arguing in the hallway called security.", question: "Who was arguing in the hallway? FIRST noun (supervisor) or SECOND noun (workers)?", correct: "NP2" },
@@ -126,7 +133,7 @@
       { sentence: "The cat chased the mouse that was hiding under the couch.", question: "What was hiding under the couch? FIRST noun (cat) or SECOND noun (mouse)?", correct: "NP2" }
     ];
 
-    // 32 Experimental Pairs (full list, same as before – included in the final file)
+    // ----- 32 Experimental Pairs -----
     const rawPairs = [
       ["The girl asked the driver of the players who was talking to an old woman.", "The girl asked the driver of the players who were talking to an old woman.", "Who was talking to an old woman? FIRST noun (driver) or SECOND noun (players)?", "NP1", "NP2"],
       ["The father of the kids who found himself broke lost his job.", "The father of the kids who found themselves broke lost his job.", "Who was broke? FIRST noun (father) or SECOND noun (kids)?", "NP1", "NP2"],
@@ -177,7 +184,7 @@
       experimentalItems.push({ sentence, question: q, correct, type: 'pair' });
     }
 
-    // 32 Ambiguous Items (full list – same as before)
+    // ----- 32 Ambiguous Items -----
     const ambiguousRaw = [
       ["Someone shot the servant of the actress who was on the balcony.", "Who was on the balcony? FIRST noun (servant) or SECOND noun (actress)?"],
       ["The brother of the teacher who was tired went home.", "Who was tired? FIRST noun (brother) or SECOND noun (teacher)?"],
@@ -214,7 +221,7 @@
     ];
     const ambiguousItems = ambiguousRaw.map(([s, q]) => ({ sentence: s, question: q, correct: null, type: 'ambiguous' }));
 
-    // 20 Fillers (full list – same as before)
+    // ----- 20 Fillers -----
     const fillerRaw = [
       ["The teacher scolded the student who was late for class.", "Who was late for class? FIRST noun (teacher) or SECOND noun (student)?", "NP2"],
       ["The dog chased the cat that ran into the garden.", "Who ran into the garden? FIRST noun (dog) or SECOND noun (cat)?", "NP2"],
@@ -239,13 +246,14 @@
     ];
     const fillers = fillerRaw.map(([s, q, c]) => ({ sentence: s, question: q, correct: c, type: 'filler' }));
 
-    // Catch trials (definitional, unambiguous)
+    // ==================== CATCH TRIALS (definitional, unambiguous) ====================
     const catchTrialsPool = [
       { sentence: "The sun is a star, but the moon is not a star.", question: "Which is a star? FIRST noun (sun) or SECOND noun (moon)?", correct: "NP1", type: 'catch' },
       { sentence: "A fish does not have feathers, but a bird has feathers.", question: "Which has feathers? FIRST noun (fish) or SECOND noun (bird)?", correct: "NP2", type: 'catch' },
       { sentence: "A bird has feathers, but a fish does not have feathers.", question: "Which has feathers? FIRST noun (bird) or SECOND noun (fish)?", correct: "NP1", type: 'catch' },
       { sentence: "The moon is not a star, but the sun is a star.", question: "Which is a star? FIRST noun (moon) or SECOND noun (sun)?", correct: "NP2", type: 'catch' }
     ];
+    // Distribution: baseline gets first catch trial (NP1), dual gets second and third (NP2, NP1)
     const baselineCatch = [catchTrialsPool[0]];
     const dualCatch = [catchTrialsPool[1], catchTrialsPool[2]];
 
@@ -290,7 +298,7 @@
     const baselineSet = insertCatchTrials(baselineSetRaw, baselineCatch, [20]);
     const dualSet = insertCatchTrials(dualSetRaw, dualCatch, [14, 28]);
 
-    // Digit sequences (60)
+    // ==================== DIGIT SEQUENCES (60) ====================
     const digitSequences = [
       [2,5,7,1], [4,9,3,6], [8,1,4,2], [7,3,9,5], [6,2,8,4], [1,7,4,9], [3,8,2,6], [5,1,9,3], [9,4,6,2], [2,8,5,7],
       [3,5,1,8], [6,9,2,4], [7,1,5,3], [4,2,9,7], [8,6,3,1], [9,3,7,4], [1,5,8,2], [2,7,4,6], [5,9,3,8], [6,1,7,9],
@@ -541,7 +549,7 @@
     
     timeline.push({ type: jsPsychCallFunction, func: () => { jsPsych.data.addProperties({ list_type: listType, key_mapping: keyMapping, block_order: blockOrder, set_assignment: setAssignment }); } });
     
-    // Instructions
+    // General instructions
     timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: `<div class="instruction-text"><h2>Instructions</h2><p>You will see a sentence for 5 seconds, then a question. Press <strong>C</strong> or <strong>M</strong>.</p><p>${(keyMapping === 'original') ? 'C = FIRST noun, M = SECOND noun' : 'C = SECOND noun, M = FIRST noun'}</p><p>The experiment has two parts. Each part starts with a short practice.</p><p>Press SPACE to begin.</p></div>`, choices: [' '] });
     
     timeline.push({ type: jsPsychCallFunction, func: () => createCounter() });
