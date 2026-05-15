@@ -10,19 +10,12 @@
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet">
   <style>
     body, .jspsych-display-element, .instruction-text, .consent-card, p, h1, h2, h3, h4 { line-height: 1.5 !important; }
-    
-    /* Fixation cross – naturally centered by jsPsych */
-    .fixation { 
-      font-size: 56px; 
-      text-align: center; 
-    }
-    
+    .fixation { font-size: 56px; text-align: center; }
     .feedback-correct { color: #2a7f2a; font-size: 36px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .feedback-incorrect { color: #b13b3b; font-size: 36px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .feedback-digit { color: #1e5f8e; font-size: 28px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .counter { position: fixed; top: 18px; right: 24px; background-color: #1e3a5f; color: white; padding: 8px 16px; border-radius: 40px; font-size: 15px; font-weight: 600; z-index: 10000; pointer-events: none; }
     
-    /* Wider demographics with side margins */
     .demographics-compact {
       max-width: 1100px;
       margin: 20px auto;
@@ -110,7 +103,7 @@
     
     console.log(`blockOrder=${blockOrder}, setAssignment=${setAssignment}, listType=${listType}, keys=${keyMapping}`);
 
-    const totalQuestions = 4 + 4 + 84; // baseline practice + dual practice + main (including catch)
+    const totalQuestions = 4 + 4 + 84;
     let questionsAnswered = 0;
     let counterDiv = null;
     function createCounter() { counterDiv = document.createElement('div'); counterDiv.className = 'counter'; counterDiv.textContent = `Progress: 0 / ${totalQuestions}`; document.body.appendChild(counterDiv); }
@@ -132,7 +125,6 @@
       { sentence: "The cat chased the mouse that was hiding under the couch.", question: "What was hiding under the couch? FIRST noun (cat) or SECOND noun (mouse)?", correct: "NP2" }
     ];
 
-    // ----- 32 Experimental Pairs (full) -----
     const rawPairs = [
       ["The girl asked the driver of the players who was talking to an old woman.", "The girl asked the driver of the players who were talking to an old woman.", "Who was talking to an old woman? FIRST noun (driver) or SECOND noun (players)?", "NP1", "NP2"],
       ["The father of the kids who found himself broke lost his job.", "The father of the kids who found themselves broke lost his job.", "Who was broke? FIRST noun (father) or SECOND noun (kids)?", "NP1", "NP2"],
@@ -168,7 +160,6 @@
       ["The witness of the drivers who bought herself a coffee waited for the police.", "The witness of the drivers who bought themselves a coffee waited for the police.", "Who bought coffee? FIRST noun (witness) or SECOND noun (drivers)?", "NP1", "NP2"]
     ];
 
-    // Build experimental items based on listType
     const experimentalItems = [];
     for (let i = 0; i < rawPairs.length; i++) {
       const [ha, la, q, correctHA, correctLA] = rawPairs[i];
@@ -183,7 +174,6 @@
       experimentalItems.push({ sentence, question: q, correct, type: 'pair' });
     }
 
-    // ----- 32 Ambiguous Items -----
     const ambiguousRaw = [
       ["Someone shot the servant of the actress who was on the balcony.", "Who was on the balcony? FIRST noun (servant) or SECOND noun (actress)?"],
       ["The brother of the teacher who was tired went home.", "Who was tired? FIRST noun (brother) or SECOND noun (teacher)?"],
@@ -220,7 +210,6 @@
     ];
     const ambiguousItems = ambiguousRaw.map(([s, q]) => ({ sentence: s, question: q, correct: null, type: 'ambiguous' }));
 
-    // ----- 20 Fillers -----
     const fillerRaw = [
       ["The teacher scolded the student who was late for class.", "Who was late for class? FIRST noun (teacher) or SECOND noun (student)?", "NP2"],
       ["The dog chased the cat that ran into the garden.", "Who ran into the garden? FIRST noun (dog) or SECOND noun (cat)?", "NP2"],
@@ -245,7 +234,6 @@
     ];
     const fillers = fillerRaw.map(([s, q, c]) => ({ sentence: s, question: q, correct: c, type: 'filler' }));
 
-    // ==================== CATCH TRIALS (definitional, unambiguous) ====================
     const catchTrialsPool = [
       { sentence: "The sun is a star, but the moon is not a star.", question: "Which is a star? FIRST noun (sun) or SECOND noun (moon)?", correct: "NP1", type: 'catch' },
       { sentence: "A fish does not have feathers, but a bird has feathers.", question: "Which has feathers? FIRST noun (fish) or SECOND noun (bird)?", correct: "NP2", type: 'catch' },
@@ -296,7 +284,6 @@
     const baselineSet = insertCatchTrials(baselineSetRaw, baselineCatch, [20]);
     const dualSet = insertCatchTrials(dualSetRaw, dualCatch, [14, 28]);
 
-    // ==================== DIGIT SEQUENCES (60) ====================
     const digitSequences = [
       [2,5,7,1], [4,9,3,6], [8,1,4,2], [7,3,9,5], [6,2,8,4], [1,7,4,9], [3,8,2,6], [5,1,9,3], [9,4,6,2], [2,8,5,7],
       [3,5,1,8], [6,9,2,4], [7,1,5,3], [4,2,9,7], [8,6,3,1], [9,3,7,4], [1,5,8,2], [2,7,4,6], [5,9,3,8], [6,1,7,9],
@@ -307,7 +294,7 @@
     ];
     function shuffleDigits(arr) { let copy = [...arr]; for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; } return copy; }
 
-    // ==================== TRIAL COMPONENTS (two‑row logging, auto‑focus) ====================
+    // ==================== TRIAL COMPONENTS ====================
     function makeBaselineComponents(item, trialNum, block, isPractice = false) {
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS", data: { trial_type: 'fixation' } };
       const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:36px; text-align:center; line-height:1.4;">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
@@ -330,6 +317,7 @@
             handedness: demo.handedness || '',
             native_language: demo.native_language || '',
             other_languages: demo.other_languages || '',
+            native_english: demo.native_english || '',
             years_english: demo.years_english || '',
             proficiency: demo.proficiency || '',
             list_type: listType,
@@ -359,7 +347,6 @@
     function makeDualComponents(item, trialNum, block, digitPool, usedSet, isPractice = false) {
       let currentDigits = null;
       let comprehensionData = null;
-      
       const digPres = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: () => {
@@ -376,7 +363,6 @@
       const blank1 = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 500, choices: "NO_KEYS" };
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS" };
       const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:36px; text-align:center; line-height:1.4;">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
-      
       const ques = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `<div style="font-size:32px; text-align:center; line-height:1.4;">${item.question}</div>`,
@@ -396,6 +382,7 @@
             handedness: demo.handedness || '',
             native_language: demo.native_language || '',
             other_languages: demo.other_languages || '',
+            native_english: demo.native_english || '',
             years_english: demo.years_english || '',
             proficiency: demo.proficiency || '',
             list_type: listType,
@@ -419,19 +406,12 @@
           if (isPractice) window.lastPractice = { correct: corr, correctAnswer: item.correct };
         }
       };
-      
       const recallTrial = {
         type: jsPsychSurveyHtmlForm,
         html: `<div style="text-align:center;">
           <p style="font-size:28px; line-height:1.5;">Enter the 4 digits in the same order:</p>
           <input type="text" name="recall" pattern="[0-9]{4}" inputmode="numeric" placeholder="e.g., 5271" required class="recall-input" id="digitRecallInput" autofocus>
           <p style="margin-top:20px; font-size:20px;">Press Enter or click Submit</p>
-          <script>
-            (function() {
-              var input = document.getElementById('digitRecallInput');
-              if (input) { setTimeout(function() { input.focus(); }, 10); }
-            })();
-          <\/script>
         </div>`,
         on_finish: (data) => {
           const recalled = data.response.recall || '';
@@ -446,9 +426,7 @@
           if (isPractice) window.lastRecallCorrect = recCorrect;
         }
       };
-      
       const blankEnd = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 300, choices: "NO_KEYS" };
-      
       if (isPractice) {
         const recallFeedback = {
           type: jsPsychHtmlKeyboardResponse,
@@ -496,7 +474,7 @@
       }
     });
     
-    // Demographics (with added proficiency fields)
+    // Demographics with conditional English fields
     timeline.push({
       type: jsPsychSurveyHtmlForm,
       preamble: '<h3 style="text-align:center;">Participant Information</h3>',
@@ -507,18 +485,27 @@
           <div class="form-group"><label>Highest academic level:</label><input type="text" name="education" required placeholder="e.g., Bachelor, Master, PhD"></div>
           <div class="form-group"><label>Handedness:</label><select name="handedness" required><option value="">--Select--</option><option>Right-handed</option><option>Left-handed</option><option>Ambidextrous</option></select></div>
           <div class="form-group"><label>Native language:</label><input type="text" name="native_language" required placeholder="e.g., English, Arabic, French"></div>
-          <div class="form-group"><label>Years of formal English study:</label><input type="number" name="years_english" min="0" step="1" placeholder="e.g., 10"></div>
-          <div class="form-group"><label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
-            <select name="proficiency" required>
+          <div class="form-group"><label>Are you a native speaker of English?</label>
+            <select name="native_english" id="nativeEnglishSelect" required>
               <option value="">--Select--</option>
-              <option value="1">1 – Very beginner</option>
-              <option value="2">2</option>
-              <option value="3">3 – Intermediate</option>
-              <option value="4">4</option>
-              <option value="5">5 – Advanced</option>
-              <option value="6">6</option>
-              <option value="7">7 – Native‑like</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
             </select>
+          </div>
+          <div id="englishFields" style="display: none;">
+            <div class="form-group"><label>Years of formal English study:</label><input type="number" name="years_english" min="0" step="1" placeholder="e.g., 10"></div>
+            <div class="form-group"><label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
+              <select name="proficiency">
+                <option value="">--Select--</option>
+                <option value="1">1 – Very beginner</option>
+                <option value="2">2</option>
+                <option value="3">3 – Intermediate</option>
+                <option value="4">4</option>
+                <option value="5">5 – Advanced</option>
+                <option value="6">6</option>
+                <option value="7">7 – Native‑like</option>
+              </select>
+            </div>
           </div>
           <div class="form-group full-width">
             <label>Other languages (select all):</label>
@@ -535,7 +522,32 @@
           </div>
         </div>
         <script>
-          (function() { var otherCheck = document.querySelector('input[name="lang_other_check"]'); var otherDiv = document.getElementById('otherSpecifyDiv'); if (otherCheck) { otherCheck.addEventListener('change', function() { otherDiv.style.display = this.checked ? 'flex' : 'none'; }); } })();
+          (function() {
+            var nativeSelect = document.getElementById('nativeEnglishSelect');
+            var englishFields = document.getElementById('englishFields');
+            var yearsInput = document.querySelector('input[name="years_english"]');
+            var profSelect = document.querySelector('select[name="proficiency"]');
+            function toggleFields() {
+              if (nativeSelect.value === 'no') {
+                englishFields.style.display = 'block';
+                yearsInput.required = true;
+                profSelect.required = true;
+              } else {
+                englishFields.style.display = 'none';
+                yearsInput.required = false;
+                profSelect.required = false;
+                yearsInput.value = '';
+                profSelect.value = '';
+              }
+            }
+            nativeSelect.addEventListener('change', toggleFields);
+            toggleFields();
+            var otherCheck = document.querySelector('input[name="lang_other_check"]');
+            var otherDiv = document.getElementById('otherSpecifyDiv');
+            if (otherCheck) {
+              otherCheck.addEventListener('change', function() { otherDiv.style.display = this.checked ? 'flex' : 'none'; });
+            }
+          })();
         <\/script>`,
       on_finish: (data) => {
         let languages = [];
@@ -558,6 +570,7 @@
           handedness: data.response.handedness,
           native_language: data.response.native_language,
           other_languages: languages.join(', '),
+          native_english: data.response.native_english,
           years_english: data.response.years_english || '',
           proficiency: data.response.proficiency || ''
         });
@@ -566,19 +579,20 @@
     
     timeline.push({ type: jsPsychCallFunction, func: () => { jsPsych.data.addProperties({ list_type: listType, key_mapping: keyMapping, block_order: blockOrder, set_assignment: setAssignment }); } });
     
-    // General instructions
+    // Instructions
     timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: `<div class="instruction-text"><h2>Instructions</h2><p>You will see a sentence for 5 seconds, then a question. Press <strong>C</strong> or <strong>M</strong>.</p><p>${(keyMapping === 'original') ? 'C = FIRST noun, M = SECOND noun' : 'C = SECOND noun, M = FIRST noun'}</p><p>The experiment has two parts. Each part starts with a short practice.</p><p>Press SPACE to begin.</p></div>`, choices: [' '] });
     
     timeline.push({ type: jsPsychCallFunction, func: () => createCounter() });
     
-    // ==================== BLOCK DEFINITIONS ====================
+    // Baseline practice (no digits)
+    timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Part with sentences only – practice<br><br>Press SPACE</div>', choices: [' '] });
+    for (let i = 0; i < practiceTrials.length; i++) {
+      let comps = makeBaselineComponents(practiceTrials[i], i + 1, 'practice_baseline', true);
+      let fb = { type: jsPsychHtmlKeyboardResponse, stimulus: () => { let last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : `<div class="feedback-incorrect">✗ Correct answer: ${last.correctAnswer}</div>`; }, trial_duration: 1500, choices: "NO_KEYS" };
+      timeline.push(...comps.slice(0, 3), fb, comps[3]);
+    }
+    
     function addBaselineBlock() {
-      timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Part with sentences only – practice<br><br>Press SPACE</div>', choices: [' '] });
-      for (let i = 0; i < practiceTrials.length; i++) {
-        let comps = makeBaselineComponents(practiceTrials[i], i + 1, 'practice_baseline', true);
-        let fb = { type: jsPsychHtmlKeyboardResponse, stimulus: () => { let last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : `<div class="feedback-incorrect">✗ Correct answer: ${last.correctAnswer}</div>`; }, trial_duration: 1500, choices: "NO_KEYS" };
-        timeline.push(...comps.slice(0, 3), fb, comps[3]);
-      }
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Now the main sentences (no digits)<br><br>Press SPACE</div>', choices: [' '] });
       for (let i = 0; i < baselineSet.length; i++) {
         timeline.push(...makeBaselineComponents(baselineSet[i], i + 1, 'baseline_main', false));
