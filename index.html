@@ -11,11 +11,10 @@
   <style>
     body, .jspsych-display-element, .instruction-text, .consent-card, p, h1, h2, h3, h4 { line-height: 1.5 !important; }
     
-    /* Fixation cross – now at natural vertical center (same as sentence) */
+    /* Fixation cross – naturally centered by jsPsych */
     .fixation { 
       font-size: 56px; 
       text-align: center; 
-      /* No margin-top; jsPsych centers it automatically */
     }
     
     .feedback-correct { color: #2a7f2a; font-size: 36px; font-weight: bold; text-align: center; margin-top: 40vh; }
@@ -111,7 +110,7 @@
     
     console.log(`blockOrder=${blockOrder}, setAssignment=${setAssignment}, listType=${listType}, keys=${keyMapping}`);
 
-    const totalQuestions = 4 + 4 + 84; // baseline practice + dual practice + main
+    const totalQuestions = 4 + 4 + 84; // baseline practice + dual practice + main (including catch)
     let questionsAnswered = 0;
     let counterDiv = null;
     function createCounter() { counterDiv = document.createElement('div'); counterDiv.className = 'counter'; counterDiv.textContent = `Progress: 0 / ${totalQuestions}`; document.body.appendChild(counterDiv); }
@@ -133,7 +132,7 @@
       { sentence: "The cat chased the mouse that was hiding under the couch.", question: "What was hiding under the couch? FIRST noun (cat) or SECOND noun (mouse)?", correct: "NP2" }
     ];
 
-    // ----- 32 Experimental Pairs -----
+    // ----- 32 Experimental Pairs (full) -----
     const rawPairs = [
       ["The girl asked the driver of the players who was talking to an old woman.", "The girl asked the driver of the players who were talking to an old woman.", "Who was talking to an old woman? FIRST noun (driver) or SECOND noun (players)?", "NP1", "NP2"],
       ["The father of the kids who found himself broke lost his job.", "The father of the kids who found themselves broke lost his job.", "Who was broke? FIRST noun (father) or SECOND noun (kids)?", "NP1", "NP2"],
@@ -253,7 +252,6 @@
       { sentence: "A bird has feathers, but a fish does not have feathers.", question: "Which has feathers? FIRST noun (bird) or SECOND noun (fish)?", correct: "NP1", type: 'catch' },
       { sentence: "The moon is not a star, but the sun is a star.", question: "Which is a star? FIRST noun (moon) or SECOND noun (sun)?", correct: "NP2", type: 'catch' }
     ];
-    // Distribution: baseline gets first catch trial (NP1), dual gets second and third (NP2, NP1)
     const baselineCatch = [catchTrialsPool[0]];
     const dualCatch = [catchTrialsPool[1], catchTrialsPool[2]];
 
@@ -309,7 +307,7 @@
     ];
     function shuffleDigits(arr) { let copy = [...arr]; for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; } return copy; }
 
-    // ==================== TRIAL COMPONENTS (two‑row logging) ====================
+    // ==================== TRIAL COMPONENTS (two‑row logging, auto‑focus) ====================
     function makeBaselineComponents(item, trialNum, block, isPractice = false) {
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS", data: { trial_type: 'fixation' } };
       const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:36px; text-align:center; line-height:1.4;">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
@@ -332,6 +330,8 @@
             handedness: demo.handedness || '',
             native_language: demo.native_language || '',
             other_languages: demo.other_languages || '',
+            years_english: demo.years_english || '',
+            proficiency: demo.proficiency || '',
             list_type: listType,
             key_mapping: keyMapping,
             block_order: blockOrder,
@@ -396,6 +396,8 @@
             handedness: demo.handedness || '',
             native_language: demo.native_language || '',
             other_languages: demo.other_languages || '',
+            years_english: demo.years_english || '',
+            proficiency: demo.proficiency || '',
             list_type: listType,
             key_mapping: keyMapping,
             block_order: blockOrder,
@@ -464,7 +466,7 @@
     // ==================== BUILD TIMELINE ====================
     let timeline = [];
     
-    // Consent card (widened)
+    // Consent card
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
       stimulus: `<div class="consent-card">
@@ -494,7 +496,7 @@
       }
     });
     
-    // Demographics (widened)
+    // Demographics (with added proficiency fields)
     timeline.push({
       type: jsPsychSurveyHtmlForm,
       preamble: '<h3 style="text-align:center;">Participant Information</h3>',
@@ -505,6 +507,19 @@
           <div class="form-group"><label>Highest academic level:</label><input type="text" name="education" required placeholder="e.g., Bachelor, Master, PhD"></div>
           <div class="form-group"><label>Handedness:</label><select name="handedness" required><option value="">--Select--</option><option>Right-handed</option><option>Left-handed</option><option>Ambidextrous</option></select></div>
           <div class="form-group"><label>Native language:</label><input type="text" name="native_language" required placeholder="e.g., English, Arabic, French"></div>
+          <div class="form-group"><label>Years of formal English study:</label><input type="number" name="years_english" min="0" step="1" placeholder="e.g., 10"></div>
+          <div class="form-group"><label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
+            <select name="proficiency" required>
+              <option value="">--Select--</option>
+              <option value="1">1 – Very beginner</option>
+              <option value="2">2</option>
+              <option value="3">3 – Intermediate</option>
+              <option value="4">4</option>
+              <option value="5">5 – Advanced</option>
+              <option value="6">6</option>
+              <option value="7">7 – Native‑like</option>
+            </select>
+          </div>
           <div class="form-group full-width">
             <label>Other languages (select all):</label>
             <div class="checkbox-group">
@@ -542,7 +557,9 @@
           education: data.response.education,
           handedness: data.response.handedness,
           native_language: data.response.native_language,
-          other_languages: languages.join(', ')
+          other_languages: languages.join(', '),
+          years_english: data.response.years_english || '',
+          proficiency: data.response.proficiency || ''
         });
       }
     });
