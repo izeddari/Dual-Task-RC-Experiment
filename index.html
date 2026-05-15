@@ -523,39 +523,45 @@
           other_languages: languages.join(', '),
           native_english: data.response.native_english
         });
-        // Store for conditional use
+        // Store the native_english value for conditional addition
         window.tempNativeEnglish = data.response.native_english;
       }
     });
     
-    // Second demographics – shown only if native_english === 'no'
+    // Conditionally add the second survey (English proficiency) only if needed
     timeline.push({
-      type: jsPsychSurveyHtmlForm,
-      preamble: '<h3 style="text-align:center;">English Background (for non‑native speakers)</h3>',
-      html: `<div class="demographics-compact" style="max-width: 600px; margin: 20px auto;">
-          <div class="form-group"><label>Years of formal English study:</label><input type="number" name="years_english" min="0" step="1" required placeholder="e.g., 10"></div>
-          <div class="form-group"><label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
-            <select name="proficiency" required>
-              <option value="">--Select--</option>
-              <option value="1">1 – Very beginner</option>
-              <option value="2">2</option>
-              <option value="3">3 – Intermediate</option>
-              <option value="4">4</option>
-              <option value="5">5 – Advanced</option>
-              <option value="6">6</option>
-              <option value="7">7 – Native‑like</option>
-            </select>
-          </div>
-        </div>`,
-      on_start: () => {
-        // Skip this trial if participant is a native English speaker
-        return window.tempNativeEnglish === 'no';
-      },
-      on_finish: (data) => {
-        jsPsych.data.addProperties({
-          years_english: data.response.years_english || '',
-          proficiency: data.response.proficiency || ''
-        });
+      type: jsPsychCallFunction,
+      func: () => {
+        if (window.tempNativeEnglish === 'no') {
+          const secondSurvey = {
+            type: jsPsychSurveyHtmlForm,
+            preamble: '<h3 style="text-align:center;">English Background (for non‑native speakers)</h3>',
+            html: `<div class="demographics-compact" style="max-width: 600px; margin: 20px auto;">
+                <div class="form-group"><label>Years of formal English study:</label><input type="number" name="years_english" min="0" step="1" required placeholder="e.g., 10"></div>
+                <div class="form-group"><label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
+                  <select name="proficiency" required>
+                    <option value="">--Select--</option>
+                    <option value="1">1 – Very beginner</option>
+                    <option value="2">2</option>
+                    <option value="3">3 – Intermediate</option>
+                    <option value="4">4</option>
+                    <option value="5">5 – Advanced</option>
+                    <option value="6">6</option>
+                    <option value="7">7 – Native‑like</option>
+                  </select>
+                </div>
+              </div>`,
+            on_finish: (data) => {
+              jsPsych.data.addProperties({
+                years_english: data.response.years_english || '',
+                proficiency: data.response.proficiency || ''
+              });
+            }
+          };
+          // Add the second survey trial directly after this call‑function
+          // We need to get the current timeline and insert it. Use jsPsych.addNodeToTimeline.
+          setTimeout(() => { jsPsych.addNodeToTimeline(secondSurvey); }, 0);
+        }
       }
     });
     
