@@ -9,7 +9,6 @@
   <script src="https://unpkg.com/@jspsych/plugin-call-function@1.1.1"></script>
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet">
   <style>
-    /* (same styles as before) */
     body, .jspsych-display-element, .instruction-text, .consent-card, p, h1, h2, h3, h4 { line-height: 1.5 !important; }
     .fixation { font-size: 56px; text-align: center; }
     .feedback-correct { color: #2a7f2a; font-size: 36px; font-weight: bold; text-align: center; margin-top: 40vh; }
@@ -72,7 +71,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("loading").style.display = "none";
 
-    // ==================== MOBILE DETECTION (same as before) ====================
+    // ==================== MOBILE DETECTION ====================
     function isMobilePhone() {
       const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
       const mobileUA = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -118,7 +117,7 @@
         .catch(err => console.error("Send error:", err));
     }
 
-    // ==================== STIMULI (full arrays – same as before) ====================
+    // ==================== STIMULI ====================
     const practiceTrials = [
       { sentence: "The manager of the employees who was reading a book stayed late.", question: "Who was reading a book? FIRST noun (manager) or SECOND noun (employees)?", correct: "NP1" },
       { sentence: "The supervisor of the workers who were arguing in the hallway called security.", question: "Who was arguing in the hallway? FIRST noun (supervisor) or SECOND noun (workers)?", correct: "NP2" },
@@ -126,26 +125,310 @@
       { sentence: "The cat chased the mouse that was hiding under the couch.", question: "What was hiding under the couch? FIRST noun (cat) or SECOND noun (mouse)?", correct: "NP2" }
     ];
 
-    const rawPairs = [ /* full 32 pairs – same as in previous scripts, included here for brevity but present in final file */ ];
-    // (I will include the full arrays in the final code; for this response, I'll assume they are present.)
-    const experimentalItems = [];
-    // ... build from rawPairs as before
+    const rawPairs = [
+      ["The girl asked the driver of the players who was talking to an old woman.", "The girl asked the driver of the players who were talking to an old woman.", "Who was talking to an old woman? FIRST noun (driver) or SECOND noun (players)?", "NP1", "NP2"],
+      ["The father of the kids who found himself broke lost his job.", "The father of the kids who found themselves broke lost his job.", "Who was broke? FIRST noun (father) or SECOND noun (kids)?", "NP1", "NP2"],
+      ["The chairman of the writers who calls himself a wealthy person signed the contract.", "The chairman of the writers who call themselves wealthy persons signed the contract.", "Who was a wealthy person? FIRST noun (chairman) or SECOND noun (writers)?", "NP1", "NP2"],
+      ["The cousins of Jane who were living in the U.S. visited us this weekend.", "The cousins of Jane who was living in the U.S. visited us this weekend.", "Who was living in the U.S.? FIRST noun (cousins) or SECOND noun (Jane)?", "NP1", "NP2"],
+      ["The pilot of the travelers who was resting complained about the weather.", "The pilot of the travelers who were resting complained about the weather.", "Who was resting? FIRST noun (pilot) or SECOND noun (travelers)?", "NP1", "NP2"],
+      ["Emma met the sister of the boys who was enjoying playing by the river.", "Emma met the sister of the boys who were enjoying playing by the river.", "Who was enjoying playing by the river? FIRST noun (sister) or SECOND noun (boys)?", "NP1", "NP2"],
+      ["The doctor examined the mother of the boy who had injured herself with the knife.", "The doctor examined the mother of the boy who had injured himself with the knife.", "Who was injured with the knife? FIRST noun (mother) or SECOND noun (boy)?", "NP1", "NP2"],
+      ["The director praised the teacher of the students who was writing the reports.", "The director praised the teacher of the students who were writing the reports.", "Who was writing the reports? FIRST noun (teacher) or SECOND noun (students)?", "NP1", "NP2"],
+      ["The crowd welcomed the daughter of Mr. Bill who introduced herself to the team.", "The crowd welcomed the daughter of Mr. Bill who introduced himself to the team.", "Who introduced themselves to the team? FIRST noun (daughter) or SECOND noun (Mr. Bill)?", "NP1", "NP2"],
+      ["The uncle of the waitress who washed himself in the kitchen lost his key.", "The uncle of the waitress who washed herself in the kitchen lost his key.", "Who washed in the kitchen? FIRST noun (uncle) or SECOND noun (waitress)?", "NP1", "NP2"],
+      ["The director of the actors who was wearing a hat enjoyed the show.", "The director of the actors who were wearing hats enjoyed the show.", "Who was wearing a hat? FIRST noun (director) or SECOND noun (actors)?", "NP1", "NP2"],
+      ["Mary met the daughter of the man who herself had a car accident.", "Mary met the daughter of the man who himself had a car accident.", "Who had a car accident? FIRST noun (daughter) or SECOND noun (man)?", "NP1", "NP2"],
+      ["The man called the assistant of the employees who were on the phone.", "The man called the assistant of the employees who was on the phone.", "Who was on the phone? FIRST noun (assistant) or SECOND noun (employees)?", "NP2", "NP1"],
+      ["The lawyer of the criminals who were in the courtroom failed to escape.", "The lawyer of the criminals who was in the courtroom failed to escape.", "Who was in the courtroom? FIRST noun (lawyer) or SECOND noun (criminals)?", "NP2", "NP1"],
+      ["The restaurant hired the chefs of the prince who proved himself to be wealthy.", "The restaurant hired the chefs of the prince who proved themselves to be wealthy.", "Who proved to be wealthy? FIRST noun (chefs) or SECOND noun (prince)?", "NP2", "NP1"],
+      ["The friends of the artist who was living abroad came yesterday to the party.", "The friends of the artist who were living abroad came yesterday to the party.", "Who was living abroad? FIRST noun (friends) or SECOND noun (artist)?", "NP2", "NP1"],
+      ["The journalist ignored the ministers of the president who was waving at the crowd.", "The journalist ignored the ministers of the president who were waving at the crowd.", "Who was waving at the crowd? FIRST noun (ministers) or SECOND noun (president)?", "NP2", "NP1"],
+      ["The aunt of the boy who had locked himself in the bedroom visited us today.", "The aunt of the boy who had locked herself in the bedroom visited us today.", "Who was locked in the bedroom? FIRST noun (aunt) or SECOND noun (boy)?", "NP2", "NP1"],
+      ["I saw the fans of the celebrity who himself refused to leave the building.", "I saw the fans of the celebrity who themselves refused to leave the building.", "Who refused to leave the building? FIRST noun (fans) or SECOND noun (celebrity)?", "NP2", "NP1"],
+      ["The sisters of the hairdresser who was living nearby will move to another city.", "The sisters of the hairdresser who were living nearby will move to another city.", "Who was living nearby? FIRST noun (sisters) or SECOND noun (hairdresser)?", "NP2", "NP1"],
+      ["John met the husband of the chairwoman who stayed by herself in the office.", "John met the husband of the chairwoman who stayed by himself in the office.", "Who stayed in the office? FIRST noun (husband) or SECOND noun (chairwoman)?", "NP2", "NP1"],
+      ["The wife of the neighbour who promised himself to work hard came today.", "The wife of the neighbour who promised herself to work hard came today.", "Who promised to work hard? FIRST noun (wife) or SECOND noun (neighbour)?", "NP2", "NP1"],
+      ["The lawyer of the woman who tried to drown herself in the river retired.", "The lawyer of the woman who tried to drown himself in the river retired.", "Who tried to drown in the river? FIRST noun (lawyer) or SECOND noun (woman)?", "NP2", "NP1"],
+      ["The colleagues of the inspector who was looking serious agreed to a meeting soon.", "The colleagues of the inspector who were looking serious agreed to a meeting soon.", "Who was looking serious? FIRST noun (colleagues) or SECOND noun (inspector)?", "NP2", "NP1"],
+      ["The leader of the scouts who was carrying a heavy pack stopped to rest.", "The leader of the scouts who were carrying a heavy pack stopped to rest.", "Who was carrying a heavy pack? FIRST noun (leader) or SECOND noun (scouts)?", "NP1", "NP2"],
+      ["The advisor of the students who was preparing the presentation left early.", "The advisor of the students who were preparing the presentation left early.", "Who was preparing the presentation? FIRST noun (advisor) or SECOND noun (students)?", "NP1", "NP2"],
+      ["The captain of the sailors who was not feeling well went below deck.", "The captain of the sailors who were not feeling well went below deck.", "Who was not feeling well? FIRST noun (captain) or SECOND noun (sailors)?", "NP1", "NP2"],
+      ["The uncle of the twins who was living in London sent a gift.", "The uncle of the twins who were living in London sent a gift.", "Who was living in London? FIRST noun (uncle) or SECOND noun (twins)?", "NP1", "NP2"],
+      ["The daughter of the teachers who bought herself a new bike was happy.", "The daughter of the teachers who bought themselves a new bike was happy.", "Who bought a new bike? FIRST noun (daughter) or SECOND noun (teachers)?", "NP1", "NP2"],
+      ["The brother of the friends who challenged himself to run faster won the race.", "The brother of the friends who challenged themselves to run faster won the race.", "Who challenged themselves to run faster? FIRST noun (brother) or SECOND noun (friends)?", "NP1", "NP2"],
+      ["The guest of the lawyers who introduced himself at the party was very polite.", "The guest of the lawyers who introduced themselves at the party was very polite.", "Who introduced themselves at the party? FIRST noun (guest) or SECOND noun (lawyers)?", "NP1", "NP2"],
+      ["The witness of the drivers who bought herself a coffee waited for the police.", "The witness of the drivers who bought themselves a coffee waited for the police.", "Who bought coffee? FIRST noun (witness) or SECOND noun (drivers)?", "NP1", "NP2"]
+    ];
 
-    const ambiguousItems = [];
-    const fillers = [];
-    const catchTrialsPool = [ /* 4 catch trials */ ];
+    const experimentalItems = [];
+    for (let i = 0; i < rawPairs.length; i++) {
+      const [ha, la, q, correctHA, correctLA] = rawPairs[i];
+      let sentence, correct;
+      if (listType === 'A') {
+        if (i < 16) { sentence = ha; correct = correctHA; }
+        else { sentence = la; correct = correctLA; }
+      } else {
+        if (i < 16) { sentence = la; correct = correctLA; }
+        else { sentence = ha; correct = correctHA; }
+      }
+      experimentalItems.push({ sentence, question: q, correct, type: 'pair' });
+    }
+
+    const ambiguousRaw = [
+      ["Someone shot the servant of the actress who was on the balcony.", "Who was on the balcony? FIRST noun (servant) or SECOND noun (actress)?"],
+      ["The brother of the teacher who was tired went home.", "Who was tired? FIRST noun (brother) or SECOND noun (teacher)?"],
+      ["The son of the guest who was nervous spoke.", "Who was nervous? FIRST noun (son) or SECOND noun (guest)?"],
+      ["The partner of the director who was late apologized.", "Who was late? FIRST noun (partner) or SECOND noun (director)?"],
+      ["The teammate of the student who was hardworking arrived.", "Who was hardworking? FIRST noun (teammate) or SECOND noun (student)?"],
+      ["I talked to the manager of the writer who was holding a bag.", "Who was holding a bag? FIRST noun (manager) or SECOND noun (writer)?"],
+      ["The neighbor of the doctor who was rich moved away.", "Who was rich? FIRST noun (neighbor) or SECOND noun (doctor)?"],
+      ["The cousin of the athlete who was travelling rested.", "Who was travelling? FIRST noun (cousin) or SECOND noun (athlete)?"],
+      ["The colleague of the manager who was promoted celebrated.", "Who was promoted? FIRST noun (colleague) or SECOND noun (manager)?"],
+      ["The friend of the student who was absent called.", "Who was absent? FIRST noun (friend) or SECOND noun (student)?"],
+      ["The friend of the person who lost the key finally found it.", "Who lost the key? FIRST noun (friend) or SECOND noun (person)?"],
+      ["The brother of the actor who was at the party arrived early.", "Who was at the party? FIRST noun (brother) or SECOND noun (actor)?"],
+      ["The secretary of the boss who was waiting looked anxious.", "Who was waiting? FIRST noun (secretary) or SECOND noun (boss)?"],
+      ["The mother of the child who was playing looked happy.", "Who was playing? FIRST noun (mother) or SECOND noun (child)?"],
+      ["The assistant of the professor who was grading exams stayed late.", "Who was grading exams? FIRST noun (assistant) or SECOND noun (professor)?"],
+      ["The nurse of the doctor who was checking the patient left the room quickly.", "Who was checking the patient? FIRST noun (nurse) or SECOND noun (doctor)?"],
+      ["The editor of the journalist who was nominated received a prize.", "Who was nominated? FIRST noun (editor) or SECOND noun (journalist)?"],
+      ["The coach of the athlete who was training for the Olympics felt proud.", "Who was training for the Olympics? FIRST noun (coach) or SECOND noun (athlete)?"],
+      ["The employee of the manager who was attending the meeting arrived on time.", "Who was attending the meeting? FIRST noun (employee) or SECOND noun (manager)?"],
+      ["The teacher of the student who was waiting in the hall called home.", "Who was waiting in the hall? FIRST noun (teacher) or SECOND noun (student)?"],
+      ["The assistant of the manager who was typing a report left early.", "Who was typing a report? FIRST noun (assistant) or SECOND noun (manager)?"],
+      ["The friend of the neighbor who was walking the dog waved hello.", "Who was walking the dog? FIRST noun (friend) or SECOND noun (neighbor)?"],
+      ["The son of the politician who was looking at his watch felt nervous.", "Who was looking at his watch? FIRST noun (son) or SECOND noun (politician)?"],
+      ["The cousin of the artist who was drinking coffee arrived late.", "Who was drinking coffee? FIRST noun (cousin) or SECOND noun (artist)?"],
+      ["The driver of the passenger who was looking at the map missed the turn.", "Who was looking at the map? FIRST noun (driver) or SECOND noun (passenger)?"],
+      ["The friend of the visitor who was sitting on the porch looked tired.", "Who was sitting on the porch? FIRST noun (friend) or SECOND noun (visitor)?"],
+      ["The relative of the guest who was cooking in the kitchen worked quickly.", "Who was cooking in the kitchen? FIRST noun (relative) or SECOND noun (guest)?"],
+      ["The daughter of the neighbor who was eating a cookie smiled.", "Who was eating a cookie? FIRST noun (daughter) or SECOND noun (neighbor)?"],
+      ["The representative of the client who was signing the document seemed pleased.", "Who was signing the document? FIRST noun (representative) or SECOND noun (client)?"],
+      ["The brother of the guest who was waiting for a call felt nervous.", "Who was waiting for a call? FIRST noun (brother) or SECOND noun (guest)?"],
+      ["The supervisor of the colleague who was fixing the computer stayed late.", "Who was fixing the computer? FIRST noun (supervisor) or SECOND noun (colleague)?"],
+      ["The nephew of the neighbor who was painting the mural arrived at noon.", "Who was painting the mural? FIRST noun (nephew) or SECOND noun (neighbor)?"]
+    ];
+    const ambiguousItems = ambiguousRaw.map(([s, q]) => ({ sentence: s, question: q, correct: null, type: 'ambiguous' }));
+
+    const fillerRaw = [
+      ["The teacher scolded the student who was late for class.", "Who was late for class? FIRST noun (teacher) or SECOND noun (student)?", "NP2"],
+      ["The dog chased the cat that ran into the garden.", "Who ran into the garden? FIRST noun (dog) or SECOND noun (cat)?", "NP2"],
+      ["The policeman helped the old woman who had lost her wallet.", "Who lost her wallet? FIRST noun (policeman) or SECOND noun (woman)?", "NP2"],
+      ["The chef tasted the soup that was too salty.", "What was too salty? FIRST noun (chef) or SECOND noun (soup)?", "NP2"],
+      ["The child hugged the grandmother who was crying.", "Who was crying? FIRST noun (child) or SECOND noun (grandmother)?", "NP2"],
+      ["The painter admired the landscape that reminded him of home.", "What reminded him of home? FIRST noun (painter) or SECOND noun (landscape)?", "NP2"],
+      ["The customer complained to the cashier who made a mistake.", "Who made a mistake? FIRST noun (customer) or SECOND noun (cashier)?", "NP2"],
+      ["The bird ate the worm that was wriggling on the ground.", "What was wriggling on the ground? FIRST noun (bird) or SECOND noun (worm)?", "NP2"],
+      ["The officer stopped the driver who ran a red light.", "Who ran a red light? FIRST noun (officer) or SECOND noun (driver)?", "NP2"],
+      ["The nurse called the patient who was feeling dizzy.", "Who was feeling dizzy? FIRST noun (nurse) or SECOND noun (patient)?", "NP2"],
+      ["The gardener watered the flowers that were wilting in the sun.", "What were wilting in the sun? FIRST noun (gardener) or SECOND noun (flowers)?", "NP2"],
+      ["The singer thanked the guitarist who played a beautiful solo.", "Who played a beautiful solo? FIRST noun (singer) or SECOND noun (guitarist)?", "NP2"],
+      ["The cat watched the mouse that stole some cheese.", "Who stole some cheese? FIRST noun (cat) or SECOND noun (mouse)?", "NP2"],
+      ["The father carried the daughter who was too tired to walk.", "Who was too tired to walk? FIRST noun (father) or SECOND noun (daughter)?", "NP2"],
+      ["The driver avoided the cyclist who swerved suddenly.", "Who swerved suddenly? FIRST noun (driver) or SECOND noun (cyclist)?", "NP2"],
+      ["The baker sold the bread that was freshly baked.", "What was freshly baked? FIRST noun (baker) or SECOND noun (bread)?", "NP2"],
+      ["The journalist interviewed the politician who had just won the election.", "Who had just won the election? FIRST noun (journalist) or SECOND noun (politician)?", "NP2"],
+      ["The child kicked the ball that rolled into the street.", "What rolled into the street? FIRST noun (child) or SECOND noun (ball)?", "NP2"],
+      ["The waiter served the couple who ordered the special dish.", "Who ordered the special dish? FIRST noun (waiter) or SECOND noun (couple)?", "NP2"],
+      ["The neighbor heard the noise that came from the basement.", "What came from the basement? FIRST noun (neighbor) or SECOND noun (noise)?", "NP2"]
+    ];
+    const fillers = fillerRaw.map(([s, q, c]) => ({ sentence: s, question: q, correct: c, type: 'filler' }));
+
+    const catchTrialsPool = [
+      { sentence: "The sun is a star, but the moon is not a star.", question: "Which is a star? FIRST noun (sun) or SECOND noun (moon)?", correct: "NP1", type: 'catch' },
+      { sentence: "A fish does not have feathers, but a bird has feathers.", question: "Which has feathers? FIRST noun (fish) or SECOND noun (bird)?", correct: "NP2", type: 'catch' },
+      { sentence: "A bird has feathers, but a fish does not have feathers.", question: "Which has feathers? FIRST noun (bird) or SECOND noun (fish)?", correct: "NP1", type: 'catch' },
+      { sentence: "The moon is not a star, but the sun is a star.", question: "Which is a star? FIRST noun (moon) or SECOND noun (sun)?", correct: "NP2", type: 'catch' }
+    ];
     const baselineCatch = [catchTrialsPool[0]];
     const dualCatch = [catchTrialsPool[1], catchTrialsPool[2]];
-    const digitSequences = [ /* 60 sequences */ ];
 
-    // Functions for shuffling, set creation, etc. (same as before)
-    function shuffle(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+    const digitSequences = [
+      [2,5,7,1], [4,9,3,6], [8,1,4,2], [7,3,9,5], [6,2,8,4], [1,7,4,9], [3,8,2,6], [5,1,9,3], [9,4,6,2], [2,8,5,7],
+      [3,5,1,8], [6,9,2,4], [7,1,5,3], [4,2,9,7], [8,6,3,1], [9,3,7,4], [1,5,8,2], [2,7,4,6], [5,9,3,8], [6,1,7,9],
+      [8,4,1,5], [3,9,6,2], [7,5,2,9], [1,8,3,6], [4,7,9,2], [2,4,8,3], [6,3,5,9], [9,1,2,5], [5,8,7,4], [3,6,1,7],
+      [7,9,4,1], [8,2,5,6], [4,5,6,9], [1,3,9,8], [6,8,2,5], [9,5,3,2], [2,6,7,8], [5,4,1,6], [7,8,9,3], [3,1,6,4],
+      [9,7,5,8], [4,8,3,7], [6,4,9,1], [1,2,8,9], [5,3,4,7], [8,9,2,4], [7,6,1,3], [2,9,5,6], [3,4,8,5], [1,6,9,7],
+      [9,8,4,5], [5,7,6,2], [4,1,3,8], [6,5,9,7], [2,3,1,9], [8,7,5,9], [3,6,2,4], [7,4,8,6], [1,9,6,5], [5,2,8,3]
+    ];
+
     function shuffleDigits(arr) { let copy = [...arr]; for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; } return copy; }
+    function shuffle(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
 
-    // Create sets (baselineSet, dualSet) – same logic as previous
+    // ==================== CREATE TWO MATCHED SETS ====================
+    const shuffledExp = shuffle([...experimentalItems]);
+    const expSet1 = shuffledExp.slice(0, 16);
+    const expSet2 = shuffledExp.slice(16, 32);
+    const shuffledAmbig = shuffle([...ambiguousItems]);
+    const ambigSet1 = shuffledAmbig.slice(0, 16);
+    const ambigSet2 = shuffledAmbig.slice(16, 32);
+    const shuffledFillers = shuffle([...fillers]);
+    const fillerSet1 = shuffledFillers.slice(0, 10);
+    const fillerSet2 = shuffledFillers.slice(10, 20);
+    const completeSet1 = shuffle([...expSet1, ...ambigSet1, ...fillerSet1]);
+    const completeSet2 = shuffle([...expSet2, ...ambigSet2, ...fillerSet2]);
+    let baselineSetRaw, dualSetRaw;
+    if (setAssignment === 'normal') { baselineSetRaw = [...completeSet1]; dualSetRaw = [...completeSet2]; }
+    else { baselineSetRaw = [...completeSet2]; dualSetRaw = [...completeSet1]; }
+    function insertCatchTrials(itemArray, catchTrials, positions) {
+      const result = [...itemArray];
+      for (let i = positions.length - 1; i >= 0; i--) {
+        const idx = positions[i];
+        if (idx >= 0 && idx <= result.length) result.splice(idx, 0, catchTrials[i]);
+      }
+      return result;
+    }
+    const baselineSet = insertCatchTrials(baselineSetRaw, baselineCatch, [20]);
+    const dualSet = insertCatchTrials(dualSetRaw, dualCatch, [14, 28]);
 
-    // ==================== CUSTOM DEMOGRAPHICS WITH VALIDATION ====================
-    // We will use a custom html-keyboard-response trial with a form and manual validation
+    // ==================== TRIAL COMPONENTS ====================
+    function makeBaselineComponents(item, trialNum, block, isPractice = false) {
+      const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS", data: { trial_type: 'fixation' } };
+      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:36px; text-align:center; line-height:1.4;">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
+      const ques = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `<div style="font-size:32px; text-align:center; line-height:1.4;">${item.question}</div>`,
+        choices: ['c', 'm'],
+        prompt: () => (keyMapping === 'original') ? '<p style="font-size:24px; line-height:1.4;">🔹 C = FIRST noun &nbsp;&nbsp; 🔹 M = SECOND noun</p>' : '<p style="font-size:24px; line-height:1.4;">🔹 C = SECOND noun &nbsp;&nbsp; 🔹 M = FIRST noun</p>',
+        on_finish: (data) => {
+          let resp = data.response === 'c' ? 'NP1' : 'NP2';
+          if (keyMapping === 'swapped') resp = resp === 'NP1' ? 'NP2' : 'NP1';
+          const corr = (item.correct !== null) ? (resp === item.correct) : null;
+          const demo = jsPsych.data.get().values().find(d => d.participant) || {};
+          const tdata = {
+            participant: demo.participant || '',
+            auto_participant_id: autoParticipantID,
+            age: demo.age || '',
+            gender: demo.gender || '',
+            education: demo.education || '',
+            handedness: demo.handedness || '',
+            native_language: demo.native_language || '',
+            other_languages: demo.other_languages || '',
+            native_english: demo.native_english || '',
+            years_english: demo.years_english || '',
+            proficiency: demo.proficiency || '',
+            list_type: listType,
+            key_mapping: keyMapping,
+            block_order: blockOrder,
+            set_assignment: setAssignment,
+            block: block,
+            trial_num: trialNum,
+            sentence: item.sentence,
+            question: item.question,
+            correct_answer: item.correct,
+            response: resp,
+            accuracy: corr,
+            is_dual_task: false,
+            rt_from_question: data.rt,
+            item_type: item.type || 'main'
+          };
+          sendToGoogleSheets(tdata);
+          incrementCounter();
+          if (isPractice) window.lastPractice = { correct: corr, correctAnswer: item.correct };
+        }
+      };
+      const blank = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 300, choices: "NO_KEYS", data: { trial_type: 'iti' } };
+      return [fix, sent, ques, blank];
+    }
+    
+    function makeDualComponents(item, trialNum, block, digitPool, usedSet, isPractice = false) {
+      let currentDigits = null;
+      let comprehensionData = null;
+      const digPres = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: () => {
+          let avail = digitPool.filter(s => !usedSet.has(JSON.stringify(s)));
+          if (avail.length === 0) { usedSet.clear(); currentDigits = digitPool[Math.floor(Math.random() * digitPool.length)]; }
+          else { currentDigits = avail[Math.floor(Math.random() * avail.length)]; }
+          usedSet.add(JSON.stringify(currentDigits));
+          return `<div style="text-align:center; margin-top:22vh;"><div class="digit-label">🔢 Remember these digits</div><div class="digit-memory">${currentDigits.join(' ')}</div></div>`;
+        },
+        trial_duration: 2000,
+        choices: "NO_KEYS",
+        data: { trial_type: 'digit_presentation', digit_sequence: () => currentDigits ? currentDigits.join('') : '' }
+      };
+      const blank1 = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 500, choices: "NO_KEYS" };
+      const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS" };
+      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:36px; text-align:center; line-height:1.4;">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
+      const ques = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `<div style="font-size:32px; text-align:center; line-height:1.4;">${item.question}</div>`,
+        choices: ['c', 'm'],
+        prompt: () => (keyMapping === 'original') ? '<p style="font-size:24px; line-height:1.4;">🔹 C = FIRST noun &nbsp;&nbsp; 🔹 M = SECOND noun</p>' : '<p style="font-size:24px; line-height:1.4;">🔹 C = SECOND noun &nbsp;&nbsp; 🔹 M = FIRST noun</p>',
+        on_finish: (data) => {
+          let resp = data.response === 'c' ? 'NP1' : 'NP2';
+          if (keyMapping === 'swapped') resp = resp === 'NP1' ? 'NP2' : 'NP1';
+          const corr = (item.correct !== null) ? (resp === item.correct) : null;
+          const demo = jsPsych.data.get().values().find(d => d.participant) || {};
+          comprehensionData = {
+            participant: demo.participant || '',
+            auto_participant_id: autoParticipantID,
+            age: demo.age || '',
+            gender: demo.gender || '',
+            education: demo.education || '',
+            handedness: demo.handedness || '',
+            native_language: demo.native_language || '',
+            other_languages: demo.other_languages || '',
+            native_english: demo.native_english || '',
+            years_english: demo.years_english || '',
+            proficiency: demo.proficiency || '',
+            list_type: listType,
+            key_mapping: keyMapping,
+            block_order: blockOrder,
+            set_assignment: setAssignment,
+            block: block,
+            trial_num: trialNum,
+            sentence: item.sentence,
+            question: item.question,
+            correct_answer: item.correct,
+            response: resp,
+            accuracy: corr,
+            is_dual_task: true,
+            rt_from_question: data.rt,
+            digit_sequence: currentDigits ? currentDigits.join('') : null,
+            item_type: item.type || 'main'
+          };
+          sendToGoogleSheets(comprehensionData);
+          incrementCounter();
+          if (isPractice) window.lastPractice = { correct: corr, correctAnswer: item.correct };
+        }
+      };
+      const recallTrial = {
+        type: jsPsychSurveyHtmlForm,
+        html: `<div style="text-align:center;">
+          <p style="font-size:28px; line-height:1.5;">Enter the 4 digits in the same order:</p>
+          <input type="text" name="recall" pattern="[0-9]{4}" inputmode="numeric" placeholder="e.g., 5271" required class="recall-input" id="digitRecallInput" autofocus>
+          <p style="margin-top:20px; font-size:20px;">Press Enter or click Submit</p>
+        </div>`,
+        on_finish: (data) => {
+          const recalled = data.response.recall || '';
+          const presented = currentDigits ? currentDigits.join('') : '';
+          const recCorrect = (presented === recalled);
+          if (comprehensionData) {
+            const recallRow = { ...comprehensionData, recall_correct: recCorrect, recalled_digits: recalled, recall_rt: data.rt, is_recall_row: true };
+            sendToGoogleSheets(recallRow);
+          } else {
+            sendToGoogleSheets({ trial_num: trialNum, block: block, recall_correct: recCorrect, recalled_digits: recalled, recall_rt: data.rt, is_recall_row: true, auto_participant_id: autoParticipantID });
+          }
+          if (isPractice) window.lastRecallCorrect = recCorrect;
+        }
+      };
+      const blankEnd = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 300, choices: "NO_KEYS" };
+      if (isPractice) {
+        const recallFeedback = {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: () => { const correct = window.lastRecallCorrect; return correct ? '<div class="feedback-digit">✓ Digit recall: correct</div>' : '<div class="feedback-digit">✗ Digit recall: incorrect</div>'; },
+          trial_duration: 1000,
+          choices: "NO_KEYS",
+          on_finish: () => { window.lastRecallCorrect = null; }
+        };
+        return [digPres, blank1, fix, sent, ques, recallTrial, recallFeedback, blankEnd];
+      } else {
+        return [digPres, blank1, fix, sent, ques, recallTrial, blankEnd];
+      }
+    }
+    
+    // ==================== CUSTOM DEMOGRAPHICS TRIAL (WITH VALIDATION) ====================
     function createDemographicsTrial() {
       return {
         type: jsPsychHtmlKeyboardResponse,
@@ -209,21 +492,17 @@
                 profSelect.required = false;
               }
             }
-            // Event listener for native speaker select
             var nativeSelect = document.getElementById('native_english');
             nativeSelect.addEventListener('change', updateEnglishRequired);
             updateEnglishRequired(); // initial call
             
-            // Other language checkbox
             var otherCheck = document.getElementById('otherCheck');
             var otherDiv = document.getElementById('otherSpecifyDiv');
             otherCheck.addEventListener('change', function() {
               otherDiv.style.display = this.checked ? 'flex' : 'none';
             });
             
-            // Submit button logic
             document.getElementById('submitDemographics').addEventListener('click', function() {
-              // Validate required fields
               var participant = document.getElementById('participant').value.trim();
               var age = document.getElementById('age').value.trim();
               var gender = document.getElementById('gender').value;
@@ -234,7 +513,6 @@
               var yearsEnglish = document.getElementById('years_english').value;
               var proficiency = document.getElementById('proficiency').value;
               
-              // Check native English condition
               if (nativeEnglish === 'no') {
                 if (!yearsEnglish) { alert('Please enter years of formal English study.'); return; }
                 if (!proficiency) { alert('Please rate your English proficiency.'); return; }
@@ -244,7 +522,6 @@
                 return;
               }
               
-              // Collect other languages
               var languages = [];
               document.querySelectorAll('.lang:checked').forEach(function(cb) {
                 if (cb.value === 'other') {
@@ -256,7 +533,6 @@
                 }
               });
               
-              // Store data in jsPsych and finish trial
               var demoData = {
                 participant: participant,
                 auto_participant_id: '${autoParticipantID}',
@@ -270,33 +546,20 @@
                 years_english: yearsEnglish || '',
                 proficiency: proficiency || ''
               };
-              // Add to jsPsych data
               jsPsych.data.addProperties(demoData);
-              // Finish trial
               jsPsych.finishTrial();
             });
           <\/script>
         `,
-        choices: "NO_KEYS", // no keyboard response, only button click
-        on_finish: function() {
-          // Data already added; nothing else needed
-        }
+        choices: "NO_KEYS",
+        on_finish: function() {}
       };
     }
 
-    // ==================== TRIAL COMPONENTS (BASELINE, DUAL) ====================
-    // (Same as previous fully working functions)
-    function makeBaselineComponents(item, trialNum, block, isPractice = false) {
-      // ... (same as before)
-    }
-    function makeDualComponents(item, trialNum, block, digitPool, usedSet, isPractice = false) {
-      // ... (same as before)
-    }
-    
     // ==================== BUILD TIMELINE ====================
     let timeline = [];
 
-    // Consent card (same as before)
+    // Consent card
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
       stimulus: `<div class="consent-card">
@@ -326,7 +589,6 @@
       }
     });
     
-    // Custom demographics trial
     timeline.push(createDemographicsTrial());
     
     timeline.push({ type: jsPsychCallFunction, func: () => { jsPsych.data.addProperties({ list_type: listType, key_mapping: keyMapping, block_order: blockOrder, set_assignment: setAssignment }); } });
