@@ -523,46 +523,42 @@
           other_languages: languages.join(', '),
           native_english: data.response.native_english
         });
+        // Store for conditional use
         window.tempNativeEnglish = data.response.native_english;
       }
     });
-
-    // Conditional second demographics (only if native_english === 'no')
+    
+    // Second demographics – shown only if native_english === 'no'
     timeline.push({
-      type: jsPsychCallFunction,
-      func: () => {
-        if (window.tempNativeEnglish === 'no') {
-          const secondSurvey = {
-            type: jsPsychSurveyHtmlForm,
-            preamble: '<h3 style="text-align:center;">English Background (for non‑native speakers)</h3>',
-            html: `<div class="demographics-compact" style="max-width: 600px; margin: 20px auto;">
-                <div class="form-group"><label>Years of formal English study:</label><input type="number" name="years_english" min="0" step="1" required placeholder="e.g., 10"></div>
-                <div class="form-group"><label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
-                  <select name="proficiency" required>
-                    <option value="">--Select--</option>
-                    <option value="1">1 – Very beginner</option>
-                    <option value="2">2</option>
-                    <option value="3">3 – Intermediate</option>
-                    <option value="4">4</option>
-                    <option value="5">5 – Advanced</option>
-                    <option value="6">6</option>
-                    <option value="7">7 – Native‑like</option>
-                  </select>
-                </div>
-              </div>`,
-            on_finish: (data) => {
-              jsPsych.data.addProperties({
-                years_english: data.response.years_english || '',
-                proficiency: data.response.proficiency || ''
-              });
-            }
-          };
-          // Insert the second survey after this call‑function trial
-          setTimeout(() => { jsPsych.addNodeToTimeline(secondSurvey); }, 0);
-        }
+      type: jsPsychSurveyHtmlForm,
+      preamble: '<h3 style="text-align:center;">English Background (for non‑native speakers)</h3>',
+      html: `<div class="demographics-compact" style="max-width: 600px; margin: 20px auto;">
+          <div class="form-group"><label>Years of formal English study:</label><input type="number" name="years_english" min="0" step="1" required placeholder="e.g., 10"></div>
+          <div class="form-group"><label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
+            <select name="proficiency" required>
+              <option value="">--Select--</option>
+              <option value="1">1 – Very beginner</option>
+              <option value="2">2</option>
+              <option value="3">3 – Intermediate</option>
+              <option value="4">4</option>
+              <option value="5">5 – Advanced</option>
+              <option value="6">6</option>
+              <option value="7">7 – Native‑like</option>
+            </select>
+          </div>
+        </div>`,
+      on_start: () => {
+        // Skip this trial if participant is a native English speaker
+        return window.tempNativeEnglish === 'no';
+      },
+      on_finish: (data) => {
+        jsPsych.data.addProperties({
+          years_english: data.response.years_english || '',
+          proficiency: data.response.proficiency || ''
+        });
       }
     });
-
+    
     timeline.push({ type: jsPsychCallFunction, func: () => { jsPsych.data.addProperties({ list_type: listType, key_mapping: keyMapping, block_order: blockOrder, set_assignment: setAssignment }); } });
     timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: `<div class="instruction-text"><h2>Instructions</h2><p>You will see a sentence for 5 seconds, then a question. Press <strong>C</strong> or <strong>M</strong>.</p><p>${(keyMapping === 'original') ? 'C = FIRST noun, M = SECOND noun' : 'C = SECOND noun, M = FIRST noun'}</p><p>The experiment has two parts. Each part starts with a short practice.</p><p>Press SPACE to begin.</p></div>`, choices: [' '] });
     timeline.push({ type: jsPsychCallFunction, func: () => createCounter() });
@@ -586,9 +582,10 @@
       let mainPool = shuffleDigits([...digitSequences]);
       for (let i = 0; i < dualSet.length; i++) timeline.push(...makeDualComponents(dualSet[i], i + 1, 'dual_main', mainPool, mainUsed, false));
     }
-    if (blockOrder === 'baseline_first') { addBaselineBlock(); addDualBlock(); } else { addDualBlock(); addBaselineBlock(); }
+    if (blockOrder === 'baseline_first') { addBaselineBlock(); addDualBlock(); }
+    else { addDualBlock(); addBaselineBlock(); }
     timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div style="font-size:48px; text-align:center; line-height:1.5; margin-top:30vh;">Experiment complete!<br><br>Thank you for participating.<br><br>You may close this window.</div>', choices: [' '] });
-
+    
     const jsPsych = initJsPsych({ on_finish: () => { if (counterDiv) counterDiv.remove(); } });
     window.jsPsych = jsPsych;
     jsPsych.run(timeline);
