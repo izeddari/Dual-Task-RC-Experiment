@@ -117,7 +117,7 @@
         .catch(err => console.error("Send error:", err));
     }
 
-    // ==================== STIMULI (full arrays) ====================
+    // ==================== STIMULI ====================
     const practiceTrials = [
       { sentence: "The manager of the employees who was reading a book stayed late.", question: "Who was reading a book? FIRST noun (manager) or SECOND noun (employees)?", correct: "NP1" },
       { sentence: "The supervisor of the workers who were arguing in the hallway called security.", question: "Who was arguing in the hallway? FIRST noun (supervisor) or SECOND noun (workers)?", correct: "NP2" },
@@ -474,7 +474,7 @@
       }
     });
     
-    // Demographics with conditional English fields
+    // Demographics with conditional English fields (working version)
     timeline.push({
       type: jsPsychSurveyHtmlForm,
       preamble: '<h3 style="text-align:center;">Participant Information</h3>',
@@ -486,7 +486,7 @@
           <div class="form-group"><label>Handedness:</label><select name="handedness" required><option value="">--Select--</option><option>Right-handed</option><option>Left-handed</option><option>Ambidextrous</option></select></div>
           <div class="form-group"><label>Native language:</label><input type="text" name="native_language" required placeholder="e.g., English, Arabic, French"></div>
           <div class="form-group"><label>Are you a native speaker of English?</label>
-            <select name="native_english" id="nativeEnglishSelect" required onchange="toggleEnglishFields()">
+            <select name="native_english" id="nativeEnglishSelect" required>
               <option value="">--Select--</option>
               <option value="yes">Yes</option>
               <option value="no">No</option>
@@ -522,13 +522,13 @@
           </div>
         </div>
         <script>
-          window.toggleEnglishFields = function() {
-            var select = document.getElementById('nativeEnglishSelect');
+          (function() {
+            var nativeSelect = document.getElementById('nativeEnglishSelect');
             var englishDiv = document.getElementById('englishFields');
             var yearsInput = document.querySelector('input[name="years_english"]');
             var profSelect = document.querySelector('select[name="proficiency"]');
-            if (select && englishDiv) {
-              if (select.value === 'no') {
+            function toggleEnglish() {
+              if (nativeSelect.value === 'no') {
                 englishDiv.style.display = 'block';
                 if (yearsInput) yearsInput.required = true;
                 if (profSelect) profSelect.required = true;
@@ -538,9 +538,9 @@
                 if (profSelect) { profSelect.required = false; profSelect.value = ''; }
               }
             }
-          };
-          document.addEventListener('DOMContentLoaded', function() {
-            window.toggleEnglishFields();
+            nativeSelect.addEventListener('change', toggleEnglish);
+            toggleEnglish(); // initial call
+            // Other language checkbox
             var otherCheck = document.querySelector('input[name="lang_other_check"]');
             var otherDiv = document.getElementById('otherSpecifyDiv');
             if (otherCheck) {
@@ -548,8 +548,7 @@
                 otherDiv.style.display = this.checked ? 'flex' : 'none';
               });
             }
-          });
-          setTimeout(window.toggleEnglishFields, 0);
+          })();
         <\/script>`,
       on_finish: (data) => {
         let languages = [];
