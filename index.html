@@ -117,7 +117,7 @@
         .catch(err => console.error("Send error:", err));
     }
 
-    // ==================== STIMULI ====================
+    // ==================== STIMULI (full arrays) ====================
     const practiceTrials = [
       { sentence: "The manager of the employees who was reading a book stayed late.", question: "Who was reading a book? FIRST noun (manager) or SECOND noun (employees)?", correct: "NP1" },
       { sentence: "The supervisor of the workers who were arguing in the hallway called security.", question: "Who was arguing in the hallway? FIRST noun (supervisor) or SECOND noun (workers)?", correct: "NP2" },
@@ -461,7 +461,7 @@
       }
     });
     
-    // First demographics (without proficiency)
+    // SINGLE DEMOGRAPHICS FORM with conditional English fields (hidden until "No" selected)
     timeline.push({
       type: jsPsychSurveyHtmlForm,
       preamble: '<h3 style="text-align:center;">Participant Information</h3>',
@@ -479,6 +479,21 @@
               <option value="no">No</option>
             </select>
           </div>
+          <div id="englishFields" style="display: none;">
+            <div class="form-group"><label>Years of formal English study:</label><input type="number" name="years_english" min="0" step="1" placeholder="e.g., 10"></div>
+            <div class="form-group"><label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
+              <select name="proficiency">
+                <option value="">--Select--</option>
+                <option value="1">1 – Very beginner</option>
+                <option value="2">2</option>
+                <option value="3">3 – Intermediate</option>
+                <option value="4">4</option>
+                <option value="5">5 – Advanced</option>
+                <option value="6">6</option>
+                <option value="7">7 – Native‑like</option>
+              </select>
+            </div>
+          </div>
           <div class="form-group full-width">
             <label>Other languages (select all):</label>
             <div class="checkbox-group">
@@ -495,9 +510,31 @@
         </div>
         <script>
           (function() {
+            var nativeSelect = document.getElementById('nativeEnglishSelect');
+            var englishDiv = document.getElementById('englishFields');
+            var yearsInput = document.querySelector('input[name="years_english"]');
+            var profSelect = document.querySelector('select[name="proficiency"]');
+            function toggleEnglish() {
+              if (nativeSelect.value === 'no') {
+                englishDiv.style.display = 'block';
+                if (yearsInput) yearsInput.required = true;
+                if (profSelect) profSelect.required = true;
+              } else {
+                englishDiv.style.display = 'none';
+                if (yearsInput) { yearsInput.required = false; yearsInput.value = ''; }
+                if (profSelect) { profSelect.required = false; profSelect.value = ''; }
+              }
+            }
+            nativeSelect.addEventListener('change', toggleEnglish);
+            toggleEnglish(); // initial call
+            // Other language checkbox
             var otherCheck = document.querySelector('input[name="lang_other_check"]');
             var otherDiv = document.getElementById('otherSpecifyDiv');
-            if (otherCheck) { otherCheck.addEventListener('change', function() { otherDiv.style.display = this.checked ? 'flex' : 'none'; }); }
+            if (otherCheck) {
+              otherCheck.addEventListener('change', function() {
+                otherDiv.style.display = this.checked ? 'flex' : 'none';
+              });
+            }
           })();
         <\/script>`,
       on_finish: (data) => {
@@ -521,47 +558,10 @@
           handedness: data.response.handedness,
           native_language: data.response.native_language,
           other_languages: languages.join(', '),
-          native_english: data.response.native_english
+          native_english: data.response.native_english,
+          years_english: data.response.years_english || '',
+          proficiency: data.response.proficiency || ''
         });
-        // Store the native_english value for conditional addition
-        window.tempNativeEnglish = data.response.native_english;
-      }
-    });
-    
-    // Conditionally add the second survey (English proficiency) only if needed
-    timeline.push({
-      type: jsPsychCallFunction,
-      func: () => {
-        if (window.tempNativeEnglish === 'no') {
-          const secondSurvey = {
-            type: jsPsychSurveyHtmlForm,
-            preamble: '<h3 style="text-align:center;">English Background (for non‑native speakers)</h3>',
-            html: `<div class="demographics-compact" style="max-width: 600px; margin: 20px auto;">
-                <div class="form-group"><label>Years of formal English study:</label><input type="number" name="years_english" min="0" step="1" required placeholder="e.g., 10"></div>
-                <div class="form-group"><label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
-                  <select name="proficiency" required>
-                    <option value="">--Select--</option>
-                    <option value="1">1 – Very beginner</option>
-                    <option value="2">2</option>
-                    <option value="3">3 – Intermediate</option>
-                    <option value="4">4</option>
-                    <option value="5">5 – Advanced</option>
-                    <option value="6">6</option>
-                    <option value="7">7 – Native‑like</option>
-                  </select>
-                </div>
-              </div>`,
-            on_finish: (data) => {
-              jsPsych.data.addProperties({
-                years_english: data.response.years_english || '',
-                proficiency: data.response.proficiency || ''
-              });
-            }
-          };
-          // Add the second survey trial directly after this call‑function
-          // We need to get the current timeline and insert it. Use jsPsych.addNodeToTimeline.
-          setTimeout(() => { jsPsych.addNodeToTimeline(secondSurvey); }, 0);
-        }
       }
     });
     
