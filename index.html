@@ -71,6 +71,16 @@
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("loading").style.display = "none";
 
+    // ==================== GET GROUP FROM URL PARAMETER ====================
+    const urlParams = new URLSearchParams(window.location.search);
+    const GROUP = urlParams.get('group');
+    if (!GROUP || (GROUP !== 'EFL' && GROUP !== 'native')) {
+      alert("Invalid or missing group parameter. Please use the correct link (e.g., ?group=EFL or ?group=native).");
+      document.body.innerHTML = '<div style="text-align:center; margin-top:50px;"><h2>Invalid link</h2><p>Please use the link provided by the researcher.</p></div>';
+      throw new Error("Invalid group parameter");
+    }
+    console.log(`Group: ${GROUP}`);
+
     // ==================== MOBILE DETECTION ====================
     function isMobilePhone() {
       const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
@@ -95,7 +105,7 @@
       });
     }
 
-    // ==================== INITIALIZE JSPSYCH FIRST ====================
+    // ==================== INITIALIZE JSPSYCH ====================
     const jsPsych = initJsPsych({ 
       on_finish: () => { 
         if (counterDiv) counterDiv.remove(); 
@@ -110,7 +120,7 @@
     let keyMapping = Math.random() < 0.5 ? 'original' : 'swapped';
     console.log(`blockOrder=${blockOrder}, setAssignment=${setAssignment}, listType=${listType}, keys=${keyMapping}`);
 
-    const totalQuestions = 4 + 4 + 84; // 4 practice baseline, 4 practice dual, 84 main items
+    const totalQuestions = 4 + 4 + 84;
     let questionsAnswered = 0;
     let counterDiv = null;
     function createCounter() { counterDiv = document.createElement('div'); counterDiv.className = 'counter'; counterDiv.textContent = `Progress: 0 / ${totalQuestions}`; document.body.appendChild(counterDiv); }
@@ -311,9 +321,9 @@
             handedness: demo.handedness || '',
             native_language: demo.native_language || '',
             other_languages: demo.other_languages || '',
-            native_english: demo.native_english || '',
-            years_english: demo.years_english || '',
-            proficiency: demo.proficiency || '',
+            group: GROUP,
+            years_english: (GROUP === 'EFL' && demo.years_english) ? demo.years_english : 'N/A',
+            proficiency: (GROUP === 'EFL' && demo.proficiency) ? demo.proficiency : 'N/A',
             list_type: listType,
             key_mapping: keyMapping,
             block_order: blockOrder,
@@ -376,9 +386,9 @@
             handedness: demo.handedness || '',
             native_language: demo.native_language || '',
             other_languages: demo.other_languages || '',
-            native_english: demo.native_english || '',
-            years_english: demo.years_english || '',
-            proficiency: demo.proficiency || '',
+            group: GROUP,
+            years_english: (GROUP === 'EFL' && demo.years_english) ? demo.years_english : 'N/A',
+            proficiency: (GROUP === 'EFL' && demo.proficiency) ? demo.proficiency : 'N/A',
             list_type: listType,
             key_mapping: keyMapping,
             block_order: blockOrder,
@@ -435,7 +445,7 @@
       }
     }
     
-    // ==================== DEMOGRAPHICS TRIAL ====================
+    // ==================== DEMOGRAPHICS TRIAL (GROUP-DEPENDENT) ====================
     const demographicsTrial = {
       type: jsPsychSurveyHtmlForm,
       html: `
@@ -481,25 +491,16 @@
             <label>Native language:</label>
             <input type="text" id="native_language" name="native_language" required placeholder="e.g., English, Arabic, French">
           </div>
-          
-          <div class="form-group">
-            <label>Are you a native speaker of English?</label>
-            <select id="native_english" name="native_english" required>
-              <option value="">--Select--</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </select>
-          </div>
 
-          <div id="l2_questions_container" style="display: none; grid-column: span 2; grid-template-columns: 1fr 1fr; gap: 20px 30px;">
+          ${GROUP === 'EFL' ? `
+          <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px 30px;">
             <div class="form-group">
               <label>Years of formal English study:</label>
-              <input type="number" id="years_english" name="years_english" min="0" step="1" placeholder="e.g., 10">
+              <input type="number" id="years_english" name="years_english" min="0" step="1" required placeholder="e.g., 10">
             </div>
-            
             <div class="form-group">
               <label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
-              <select id="proficiency" name="proficiency">
+              <select id="proficiency" name="proficiency" required>
                 <option value="">--Select--</option>
                 <option value="1">1 – Very beginner</option>
                 <option value="2">2</option>
@@ -511,6 +512,7 @@
               </select>
             </div>
           </div>
+          ` : ``}
           
           <div class="form-group full-width">
             <label>Other languages (select all):</label>
@@ -526,72 +528,16 @@
             <div id="otherSpecifyDiv" style="display:none; margin-top:10px;"><label>Please specify:</label><input type="text" id="other_text" name="lang_other_text" placeholder="e.g., Italian, Portuguese"></div>
           </div>
         </div>
-      `,
-      on_load: function() {
-        const nativeEnglishSelect = document.getElementById('native_english');
-        const l2Container = document.getElementById('l2_questions_container');
-        const yearsInput = document.getElementById('years_english');
-        const proficiencySelect = document.getElementById('proficiency');
-        
-        // Explicit layout hide check on component initialization
-        l2Container.style.display = 'none';
-        
-        nativeEnglishSelect.addEventListener('change', function() {
-          if (this.value === 'no') {
-            l2Container.style.display = 'grid';
-            yearsInput.setAttribute('required', 'required');
-            proficiencySelect.setAttribute('required', 'required');
-          } else {
-            l2Container.style.display = 'none';
-            yearsInput.removeAttribute('required');
-            proficiencySelect.removeAttribute('required');
-            yearsInput.value = '';
-            proficiencySelect.value = '';
+        <script>
+          var otherCheck = document.getElementById('otherCheck');
+          var otherDiv = document.getElementById('otherSpecifyDiv');
+          if (otherCheck) {
+            otherCheck.addEventListener('change', function() {
+              otherDiv.style.display = this.checked ? 'flex' : 'none';
+            });
           }
-        });
-
-        const otherCheck = document.getElementById('otherCheck');
-        const otherDiv = document.getElementById('otherSpecifyDiv');
-        otherCheck.addEventListener('change', function() {
-          otherDiv.style.display = this.checked ? 'flex' : 'none';
-        });
-
-        // Intercept validation execution chain
-        const nextButton = document.getElementById('jspsych-survey-html-form-next');
-        if (nextButton) {
-          nextButton.addEventListener('click', function(e) {
-            const participant = document.getElementById('participant').value.trim();
-            const age = document.getElementById('age').value.trim();
-            const gender = document.getElementById('gender').value;
-            const education = document.getElementById('education').value.trim();
-            const handedness = document.getElementById('handedness').value;
-            const nativeLang = document.getElementById('native_language').value.trim();
-            const nativeEnglish = nativeEnglishSelect.value;
-
-            if (!participant || !age || !gender || !education || !handedness || !nativeLang || !nativeEnglish) {
-              alert('Please fill in all required demographic fields.');
-              e.preventDefault();
-              e.stopPropagation();
-              return false;
-            }
-
-            if (nativeEnglish === 'no') {
-              if (!yearsInput.value) {
-                alert('Please enter your years of formal English study.');
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-              }
-              if (!proficiencySelect.value) {
-                alert('Please rate your English proficiency.');
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-              }
-            }
-          });
-        }
-      },
+        <\/script>
+      `,
       on_finish: function(data) {
         let languages = [];
         if (data.response.lang_arabic) languages.push('Arabic');
@@ -605,8 +551,6 @@
           else languages.push('Other (unspecified)');
         }
 
-        const isNative = data.response.native_english === 'yes';
-
         jsPsych.data.addProperties({
           participant: data.response.participant,
           auto_participant_id: autoParticipantID,
@@ -616,9 +560,9 @@
           handedness: data.response.handedness,
           native_language: data.response.native_language,
           other_languages: languages.join(', '),
-          native_english: data.response.native_english,
-          years_english: isNative ? 'N/A' : (data.response.years_english || ''),
-          proficiency: isNative ? 'N/A' : (data.response.proficiency || '')
+          group: GROUP,
+          years_english: (GROUP === 'EFL' && data.response.years_english) ? data.response.years_english : 'N/A',
+          proficiency: (GROUP === 'EFL' && data.response.proficiency) ? data.response.proficiency : 'N/A'
         });
       }
     };
@@ -664,7 +608,8 @@
           list_type: listType, 
           key_mapping: keyMapping, 
           block_order: blockOrder, 
-          set_assignment: setAssignment 
+          set_assignment: setAssignment,
+          group: GROUP
         }); 
       } 
     });
