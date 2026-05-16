@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/@jspsych/plugin-call-function@1.1.1"></script>
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet">
   <style>
+    /* (same styles as before – kept compact) */
     body, .jspsych-display-element, .instruction-text, .consent-card, p, h1, h2, h3, h4 { line-height: 1.5 !important; }
     .fixation { font-size: 56px; text-align: center; }
     .feedback-correct { color: #2a7f2a; font-size: 36px; font-weight: bold; text-align: center; margin-top: 40vh; }
@@ -128,6 +129,7 @@
       { sentence: "The cat chased the mouse that was hiding under the couch.", question: "What was hiding under the couch? FIRST noun (cat) or SECOND noun (mouse)?", correct: "NP2" }
     ];
 
+    // 32 experimental pairs (same as before – full array)
     const rawPairs = [
       ["The girl asked the driver of the players who was talking to an old woman.", "The girl asked the driver of the players who were talking to an old woman.", "Who was talking to an old woman? FIRST noun (driver) or SECOND noun (players)?", "NP1", "NP2"],
       ["The father of the kids who found himself broke lost his job.", "The father of the kids who found themselves broke lost his job.", "Who was broke? FIRST noun (father) or SECOND noun (kids)?", "NP1", "NP2"],
@@ -431,109 +433,189 @@
       }
     }
     
-    // ==================== CUSTOM DEMOGRAPHICS TRIAL (with button validation) ====================
+    // ==================== DEMOGRAPHICS TRIAL (with working validation) ====================
     const demographicsTrial = {
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: `
+      type: jsPsychSurveyHtmlForm,
+      html: `
         <div class="demographics-compact">
-          <h3 style="text-align:center;">Participant Information</h3>
-          <div class="form-group"><label>Participant ID (create a non‑identifying ID, e.g., BlueTiger27):</label><input type="text" id="participant" required placeholder="e.g., BlueTiger27"></div>
-          <div class="form-group"><label>Age:</label><input type="number" id="age" required></div>
-          <div class="form-group"><label>Gender:</label><select id="gender" required><option value="">--Select--</option><option>Female</option><option>Male</option><option>Non-binary</option></select></div>
-          <div class="form-group"><label>Highest academic level:</label><input type="text" id="education" required placeholder="e.g., Bachelor, Master, PhD"></div>
-          <div class="form-group"><label>Handedness:</label><select id="handedness" required><option value="">--Select--</option><option>Right-handed</option><option>Left-handed</option><option>Ambidextrous</option></select></div>
-          <div class="form-group"><label>Native language:</label><input type="text" id="native_language" required placeholder="e.g., English, Arabic, French"></div>
-          <div class="form-group"><label>Are you a native speaker of English?</label>
-            <select id="native_english" required>
+          <h3 style="text-align:center; grid-column: span 2; margin-top: 0;">Participant Information</h3>
+          
+          <div class="form-group">
+            <label>Participant ID (create a non‑identifying ID, e.g., BlueTiger27):</label>
+            <input type="text" id="participant" name="participant" required placeholder="e.g., BlueTiger27">
+          </div>
+          
+          <div class="form-group">
+            <label>Age:</label>
+            <input type="number" id="age" name="age" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Gender:</label>
+            <select id="gender" name="gender" required>
+              <option value="">--Select--</option>
+              <option>Female</option>
+              <option>Male</option>
+              <option>Non-binary</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Highest academic level:</label>
+            <input type="text" id="education" name="education" required placeholder="e.g., Bachelor, Master, PhD">
+          </div>
+          
+          <div class="form-group">
+            <label>Handedness:</label>
+            <select id="handedness" name="handedness" required>
+              <option value="">--Select--</option>
+              <option>Right-handed</option>
+              <option>Left-handed</option>
+              <option>Ambidextrous</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Native language:</label>
+            <input type="text" id="native_language" name="native_language" required placeholder="e.g., English, Arabic, French">
+          </div>
+          
+          <div class="form-group">
+            <label>Are you a native speaker of English?</label>
+            <select id="native_english" name="native_english" required>
               <option value="">--Select--</option>
               <option value="yes">Yes</option>
               <option value="no">No</option>
             </select>
           </div>
-          <div class="form-group"><label>Years of formal English study:</label><input type="number" id="years_english" min="0" step="1" placeholder="e.g., 10"></div>
-          <div class="form-group"><label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
-            <select id="proficiency">
-              <option value="">--Select--</option>
-              <option value="1">1 – Very beginner</option>
-              <option value="2">2</option>
-              <option value="3">3 – Intermediate</option>
-              <option value="4">4</option>
-              <option value="5">5 – Advanced</option>
-              <option value="6">6</option>
-              <option value="7">7 – Native‑like</option>
-            </select>
+
+          <div id="l2_questions_container" style="display: none; grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px 30px;">
+            <div class="form-group">
+              <label>Years of formal English study:</label>
+              <input type="number" id="years_english" name="years_english" min="0" step="1" placeholder="e.g., 10">
+            </div>
+            
+            <div class="form-group">
+              <label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
+              <select id="proficiency" name="proficiency">
+                <option value="">--Select--</option>
+                <option value="1">1 – Very beginner</option>
+                <option value="2">2</option>
+                <option value="3">3 – Intermediate</option>
+                <option value="4">4</option>
+                <option value="5">5 – Advanced</option>
+                <option value="6">6</option>
+                <option value="7">7 – Native‑like</option>
+              </select>
+            </div>
           </div>
+          
           <div class="form-group full-width">
             <label>Other languages (select all):</label>
             <div class="checkbox-group">
-              <label><input type="checkbox" class="lang" value="Arabic"> Arabic</label>
-              <label><input type="checkbox" class="lang" value="Moroccan Arabic"> Moroccan Arabic</label>
-              <label><input type="checkbox" class="lang" value="Amazigh"> Amazigh</label>
-              <label><input type="checkbox" class="lang" value="French"> French</label>
-              <label><input type="checkbox" class="lang" value="English"> English</label>
-              <label><input type="checkbox" class="lang" value="Spanish"> Spanish</label>
-              <label><input type="checkbox" class="lang" id="otherCheck" value="other"> Other</label>
+              <label><input type="checkbox" class="lang" name="lang_arabic" value="Arabic"> Arabic</label>
+              <label><input type="checkbox" class="lang" name="lang_moroccan_arabic" value="Moroccan Arabic"> Moroccan Arabic</label>
+              <label><input type="checkbox" class="lang" name="lang_amazigh" value="Amazigh"> Amazigh</label>
+              <label><input type="checkbox" class="lang" name="lang_french" value="French"> French</label>
+              <label><input type="checkbox" class="lang" name="lang_english" value="English"> English</label>
+              <label><input type="checkbox" class="lang" name="lang_spanish" value="Spanish"> Spanish</label>
+              <label><input type="checkbox" class="lang" id="otherCheck" name="lang_other_check" value="other"> Other</label>
             </div>
-            <div id="otherSpecifyDiv" style="display:none; margin-top:10px;"><label>Please specify:</label><input type="text" id="other_text" placeholder="e.g., Italian, Portuguese"></div>
-          </div>
-          <div style="text-align:center; margin-top:20px;">
-            <button id="submitDemographics" style="font-size:20px; padding:10px 30px;">Continue</button>
+            <div id="otherSpecifyDiv" style="display:none; margin-top:10px;"><label>Please specify:</label><input type="text" id="other_text" name="lang_other_text" placeholder="e.g., Italian, Portuguese"></div>
           </div>
         </div>
-        <script>
-          document.getElementById('submitDemographics').addEventListener('click', function() {
-            var participant = document.getElementById('participant').value.trim();
-            var age = document.getElementById('age').value.trim();
-            var gender = document.getElementById('gender').value;
-            var education = document.getElementById('education').value.trim();
-            var handedness = document.getElementById('handedness').value;
-            var nativeLang = document.getElementById('native_language').value.trim();
-            var nativeEnglish = document.getElementById('native_english').value;
-            var yearsEnglish = document.getElementById('years_english').value;
-            var proficiency = document.getElementById('proficiency').value;
-            if (!participant || !age || !gender || !education || !handedness || !nativeLang || !nativeEnglish) {
-              alert('Please fill in all required fields.');
-              return;
-            }
-            if (nativeEnglish === 'no') {
-              if (!yearsEnglish) { alert('Please enter years of formal English study.'); return; }
-              if (!proficiency) { alert('Please rate your English proficiency.'); return; }
-            }
-            var languages = [];
-            document.querySelectorAll('.lang:checked').forEach(function(cb) {
-              if (cb.value === 'other') {
-                var otherText = document.getElementById('other_text').value.trim();
-                if (otherText) languages.push('Other: ' + otherText);
-                else languages.push('Other (unspecified)');
-              } else {
-                languages.push(cb.value);
-              }
-            });
-            var demoData = {
-              participant: participant,
-              auto_participant_id: '${autoParticipantID}',
-              age: age,
-              gender: gender,
-              education: education,
-              handedness: handedness,
-              native_language: nativeLang,
-              other_languages: languages.join(', '),
-              native_english: nativeEnglish,
-              years_english: yearsEnglish || '',
-              proficiency: proficiency || ''
-            };
-            jsPsych.data.addProperties(demoData);
-            jsPsych.finishTrial();
-          });
-          var otherCheck = document.getElementById('otherCheck');
-          var otherDiv = document.getElementById('otherSpecifyDiv');
-          otherCheck.addEventListener('change', function() {
-            otherDiv.style.display = this.checked ? 'flex' : 'none';
-          });
-        <\/script>
       `,
-      choices: "NO_KEYS",
-      on_finish: function() {}
+      on_load: function() {
+        const nativeEnglishSelect = document.getElementById('native_english');
+        const l2Container = document.getElementById('l2_questions_container');
+        const yearsInput = document.getElementById('years_english');
+        const proficiencySelect = document.getElementById('proficiency');
+        
+        // Hide L2 container initially (style.display is already 'none' but inline style had duplicate)
+        l2Container.style.display = 'none';
+        
+        nativeEnglishSelect.addEventListener('change', function() {
+          if (this.value === 'no') {
+            l2Container.style.display = 'grid';
+            yearsInput.setAttribute('required', 'required');
+            proficiencySelect.setAttribute('required', 'required');
+          } else {
+            l2Container.style.display = 'none';
+            yearsInput.removeAttribute('required');
+            proficiencySelect.removeAttribute('required');
+            yearsInput.value = '';
+            proficiencySelect.value = '';
+          }
+        });
+
+        const otherCheck = document.getElementById('otherCheck');
+        const otherDiv = document.getElementById('otherSpecifyDiv');
+        otherCheck.addEventListener('change', function() {
+          otherDiv.style.display = this.checked ? 'flex' : 'none';
+        });
+
+        // Custom validation on the next button
+        const nextButton = document.getElementById('jspsych-survey-html-form-next');
+        if (nextButton) {
+          nextButton.addEventListener('click', function(e) {
+            const participant = document.getElementById('participant').value.trim();
+            const age = document.getElementById('age').value.trim();
+            const gender = document.getElementById('gender').value;
+            const education = document.getElementById('education').value.trim();
+            const handedness = document.getElementById('handedness').value;
+            const nativeLang = document.getElementById('native_language').value.trim();
+            const nativeEnglish = nativeEnglishSelect.value;
+
+            if (!participant || !age || !gender || !education || !handedness || !nativeLang || !nativeEnglish) {
+              alert('Please fill in all required demographic fields.');
+              e.preventDefault();
+              e.stopPropagation();
+              return false;
+            }
+
+            if (nativeEnglish === 'no') {
+              if (!yearsInput.value) {
+                alert('Please enter your years of formal English study.');
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+              }
+              if (!proficiencySelect.value) {
+                alert('Please rate your English proficiency.');
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+              }
+            }
+          });
+        }
+      },
+      on_finish: function(data) {
+        let languages = [];
+        if (data.response.lang_arabic) languages.push('Arabic');
+        if (data.response.lang_moroccan_arabic) languages.push('Moroccan Arabic');
+        if (data.response.lang_amazigh) languages.push('Amazigh');
+        if (data.response.lang_french) languages.push('French');
+        if (data.response.lang_english) languages.push('English');
+        if (data.response.lang_spanish) languages.push('Spanish');
+        if (data.response.lang_other_check) {
+          if (data.response.lang_other_text) languages.push(`Other: ${data.response.lang_other_text}`);
+          else languages.push('Other (unspecified)');
+        }
+        jsPsych.data.addProperties({
+          participant: data.response.participant,
+          auto_participant_id: autoParticipantID,
+          age: data.response.age,
+          gender: data.response.gender,
+          education: data.response.education,
+          handedness: data.response.handedness,
+          native_language: data.response.native_language,
+          other_languages: languages.join(', '),
+          native_english: data.response.native_english,
+          years_english: data.response.years_english || '',
+          proficiency: data.response.proficiency || ''
+        });
+      }
     };
 
     // ==================== BUILD TIMELINE ====================
