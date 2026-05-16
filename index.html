@@ -2,14 +2,13 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Sentence Comprehension with Digit Memory (Final)</title>
+  <title>Sentence Comprehension with Digit Memory</title>
   <script src="https://unpkg.com/jspsych@7.3.4/dist/index.browser.min.js"></script>
   <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
   <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.0.2"></script>
   <script src="https://unpkg.com/@jspsych/plugin-call-function@1.1.1"></script>
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet">
   <style>
-    /* (same styles as before – kept compact) */
     body, .jspsych-display-element, .instruction-text, .consent-card, p, h1, h2, h3, h4 { line-height: 1.5 !important; }
     .fixation { font-size: 56px; text-align: center; }
     .feedback-correct { color: #2a7f2a; font-size: 36px; font-weight: bold; text-align: center; margin-top: 40vh; }
@@ -96,8 +95,12 @@
       });
     }
 
-    // ==================== INITIALIZE JSPSYCH ====================
-    const jsPsych = initJsPsych({ on_finish: () => { if (counterDiv) counterDiv.remove(); } });
+    // ==================== INITIALIZE JSPSYCH FIRST ====================
+    const jsPsych = initJsPsych({ 
+      on_finish: () => { 
+        if (counterDiv) counterDiv.remove(); 
+      } 
+    });
     window.jsPsych = jsPsych;
 
     // ==================== COUNTERBALANCING ====================
@@ -107,7 +110,7 @@
     let keyMapping = Math.random() < 0.5 ? 'original' : 'swapped';
     console.log(`blockOrder=${blockOrder}, setAssignment=${setAssignment}, listType=${listType}, keys=${keyMapping}`);
 
-    const totalQuestions = 4 + 4 + 84;
+    const totalQuestions = 4 + 4 + 84; // 4 practice baseline, 4 practice dual, 84 main items
     let questionsAnswered = 0;
     let counterDiv = null;
     function createCounter() { counterDiv = document.createElement('div'); counterDiv.className = 'counter'; counterDiv.textContent = `Progress: 0 / ${totalQuestions}`; document.body.appendChild(counterDiv); }
@@ -121,7 +124,7 @@
         .catch(err => console.error("Send error:", err));
     }
 
-    // ==================== STIMULI (full arrays) ====================
+    // ==================== STIMULI (FULL ARRAYS) ====================
     const practiceTrials = [
       { sentence: "The manager of the employees who was reading a book stayed late.", question: "Who was reading a book? FIRST noun (manager) or SECOND noun (employees)?", correct: "NP1" },
       { sentence: "The supervisor of the workers who were arguing in the hallway called security.", question: "Who was arguing in the hallway? FIRST noun (supervisor) or SECOND noun (workers)?", correct: "NP2" },
@@ -129,7 +132,6 @@
       { sentence: "The cat chased the mouse that was hiding under the couch.", question: "What was hiding under the couch? FIRST noun (cat) or SECOND noun (mouse)?", correct: "NP2" }
     ];
 
-    // 32 experimental pairs (same as before – full array)
     const rawPairs = [
       ["The girl asked the driver of the players who was talking to an old woman.", "The girl asked the driver of the players who were talking to an old woman.", "Who was talking to an old woman? FIRST noun (driver) or SECOND noun (players)?", "NP1", "NP2"],
       ["The father of the kids who found himself broke lost his job.", "The father of the kids who found themselves broke lost his job.", "Who was broke? FIRST noun (father) or SECOND noun (kids)?", "NP1", "NP2"],
@@ -433,7 +435,7 @@
       }
     }
     
-    // ==================== DEMOGRAPHICS TRIAL (with working validation) ====================
+    // ==================== DEMOGRAPHICS TRIAL ====================
     const demographicsTrial = {
       type: jsPsychSurveyHtmlForm,
       html: `
@@ -489,7 +491,7 @@
             </select>
           </div>
 
-          <div id="l2_questions_container" style="display: none; grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px 30px;">
+          <div id="l2_questions_container" style="display: none; grid-column: span 2; grid-template-columns: 1fr 1fr; gap: 20px 30px;">
             <div class="form-group">
               <label>Years of formal English study:</label>
               <input type="number" id="years_english" name="years_english" min="0" step="1" placeholder="e.g., 10">
@@ -531,7 +533,7 @@
         const yearsInput = document.getElementById('years_english');
         const proficiencySelect = document.getElementById('proficiency');
         
-        // Hide L2 container initially (style.display is already 'none' but inline style had duplicate)
+        // Explicit layout hide check on component initialization
         l2Container.style.display = 'none';
         
         nativeEnglishSelect.addEventListener('change', function() {
@@ -554,7 +556,7 @@
           otherDiv.style.display = this.checked ? 'flex' : 'none';
         });
 
-        // Custom validation on the next button
+        // Intercept validation execution chain
         const nextButton = document.getElementById('jspsych-survey-html-form-next');
         if (nextButton) {
           nextButton.addEventListener('click', function(e) {
@@ -602,6 +604,9 @@
           if (data.response.lang_other_text) languages.push(`Other: ${data.response.lang_other_text}`);
           else languages.push('Other (unspecified)');
         }
+
+        const isNative = data.response.native_english === 'yes';
+
         jsPsych.data.addProperties({
           participant: data.response.participant,
           auto_participant_id: autoParticipantID,
@@ -612,8 +617,8 @@
           native_language: data.response.native_language,
           other_languages: languages.join(', '),
           native_english: data.response.native_english,
-          years_english: data.response.years_english || '',
-          proficiency: data.response.proficiency || ''
+          years_english: isNative ? 'N/A' : (data.response.years_english || ''),
+          proficiency: isNative ? 'N/A' : (data.response.proficiency || '')
         });
       }
     };
@@ -621,14 +626,14 @@
     // ==================== BUILD TIMELINE ====================
     let timeline = [];
 
-    // Consent card
+    // Consent Form
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
       stimulus: `<div class="consent-card">
         <h3>PARTICIPANT INFORMATION AND CONSENT FORM</h3>
         <p>You are invited to participate in a research study on <strong>sentence comprehension</strong>.</p>
         <p>The task involves reading sentences and answering questions. The experiment will take approximately <strong>20 minutes</strong> to complete.</p>
-        <p><strong>Participation is voluntary.</strong> You may stop the experiment and close your browser at any time without penalty. Any responses you have already submitted before exiting will still be stored, but you may request deletion afterward using your Participant ID (see below).</p>
+        <p><strong>Participation is voluntary.</strong> You may stop the experiment and close your browser at any time without penalty. Any responses you have already submitted before exiting will still be stored, but you may request deletion afterward using your Participant ID.</p>
         <p>This study involves no known risks beyond those encountered in everyday computer use. While there is no direct benefit to participants, the study may contribute to research on language processing.</p>
         <div class="highlight">
           <p><strong>No personal identifying information (such as your name or email address) will be collected.</strong> You will be asked to create a non‑identifying Participant ID of your choice (for example, <em>BlueTiger27</em>). Please do not use your real name. <strong>Keep this ID</strong> – you will need it if you later wish to request deletion of your data.</p>
@@ -651,19 +656,41 @@
     });
     
     timeline.push(demographicsTrial);
-    timeline.push({ type: jsPsychCallFunction, func: () => { jsPsych.data.addProperties({ list_type: listType, key_mapping: keyMapping, block_order: blockOrder, set_assignment: setAssignment }); } });
-    timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: `<div class="instruction-text"><h2>Instructions</h2><p>You will see a sentence for 5 seconds, then a question. Press <strong>C</strong> or <strong>M</strong>.</p><p>${(keyMapping === 'original') ? 'C = FIRST noun, M = SECOND noun' : 'C = SECOND noun, M = FIRST noun'}</p><p>The experiment has two parts. Each part starts with a short practice.</p><p>Press SPACE to begin.</p></div>`, choices: [' '] });
+    
+    timeline.push({ 
+      type: jsPsychCallFunction, 
+      func: () => { 
+        jsPsych.data.addProperties({ 
+          list_type: listType, 
+          key_mapping: keyMapping, 
+          block_order: blockOrder, 
+          set_assignment: setAssignment 
+        }); 
+      } 
+    });
+    
+    timeline.push({ 
+      type: jsPsychHtmlKeyboardResponse, 
+      stimulus: () => {
+        const bindingInfo = (keyMapping === 'original') ? 'C = FIRST noun, M = SECOND noun' : 'C = SECOND noun, M = FIRST noun';
+        return `<div class="instruction-text"><h2>Instructions</h2><p>You will see a sentence for 5 seconds, then a question. Press <strong>C</strong> or <strong>M</strong>.</p><p><strong>${bindingInfo}</strong></p><p>The experiment has two parts. Each part starts with a short practice.</p><p>Press SPACE to begin.</p></div>`;
+      }, 
+      choices: [' '] 
+    });
+    
     timeline.push({ type: jsPsychCallFunction, func: () => createCounter() });
-    timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Part with sentences only – practice<br><br>Press SPACE</div>', choices: [' '] });
-    for (let i = 0; i < practiceTrials.length; i++) {
-      let comps = makeBaselineComponents(practiceTrials[i], i + 1, 'practice_baseline', true);
-      let fb = { type: jsPsychHtmlKeyboardResponse, stimulus: () => { let last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : `<div class="feedback-incorrect">✗ Correct answer: ${last.correctAnswer}</div>`; }, trial_duration: 1500, choices: "NO_KEYS" };
-      timeline.push(...comps.slice(0, 3), fb, comps[3]);
-    }
+    
     function addBaselineBlock() {
+      timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Part with sentences only – practice<br><br>Press SPACE</div>', choices: [' '] });
+      for (let i = 0; i < practiceTrials.length; i++) {
+        let comps = makeBaselineComponents(practiceTrials[i], i + 1, 'practice_baseline', true);
+        let fb = { type: jsPsychHtmlKeyboardResponse, stimulus: () => { let last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : `<div class="feedback-incorrect">✗ Correct answer: ${last.correctAnswer}</div>`; }, trial_duration: 1500, choices: "NO_KEYS" };
+        timeline.push(...comps.slice(0, 3), fb, comps[3]);
+      }
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Now the main sentences (no digits)<br><br>Press SPACE</div>', choices: [' '] });
       for (let i = 0; i < baselineSet.length; i++) timeline.push(...makeBaselineComponents(baselineSet[i], i + 1, 'baseline_main', false));
     }
+    
     function addDualBlock() {
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:32px;">Part with digit memory task – practice<br><br>You will see 4 digits, then sentence, then answer, then type the digits.<br>After each trial you will see feedback for digit recall.<br><br>Press SPACE</div>', choices: [' '] });
       let practiceUsed = new Set();
@@ -674,8 +701,15 @@
       let mainPool = shuffleDigits([...digitSequences]);
       for (let i = 0; i < dualSet.length; i++) timeline.push(...makeDualComponents(dualSet[i], i + 1, 'dual_main', mainPool, mainUsed, false));
     }
-    if (blockOrder === 'baseline_first') { addBaselineBlock(); addDualBlock(); }
-    else { addDualBlock(); addBaselineBlock(); }
+    
+    if (blockOrder === 'baseline_first') { 
+      addBaselineBlock(); 
+      addDualBlock(); 
+    } else { 
+      addDualBlock(); 
+      addBaselineBlock(); 
+    }
+    
     timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div style="font-size:48px; text-align:center; line-height:1.5; margin-top:30vh;">Experiment complete!<br><br>Thank you for participating.<br><br>You may close this window.</div>', choices: [' '] });
     
     jsPsych.run(timeline);
