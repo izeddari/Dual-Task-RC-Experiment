@@ -139,7 +139,7 @@
     function incrementCounter() { questionsAnswered++; updateCounter(); }
 
     const autoParticipantID = `auto_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbx-KkNp_g4rJ5ikUH0YSlGUH2Q43ULOpWobQ5ZR_FCNlY8H84nRRW8o1EG9IezXOpo/exec";
+    const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbwCuOOFXRant6r-OwYNREMLZqg1dZDTDvf_LnFNf4W7aNqHfnNLHn0TJ905cFP5EVjt/exec";
     function sendToGoogleSheets(dataRow) {
       fetch(GOOGLE_SHEETS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dataRow) })
         .catch(err => console.error("Send error:", err));
