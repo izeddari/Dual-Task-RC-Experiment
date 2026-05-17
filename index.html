@@ -16,6 +16,17 @@
     .feedback-digit { color: #1e5f8e; font-size: 28px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .counter { position: fixed; top: 18px; right: 24px; background-color: #1e3a5f; color: white; padding: 8px 16px; border-radius: 40px; font-size: 15px; font-weight: 600; z-index: 10000; pointer-events: none; }
     
+    /* Improved sentence display: responsive, no overflow, wrapping allowed */
+    .sentence-text {
+      font-size: clamp(20px, 5vw, 36px);
+      text-align: center;
+      line-height: 1.4;
+      max-width: 90%;
+      margin: 0 auto;
+      word-wrap: break-word;
+      white-space: normal;
+    }
+    
     .demographics-compact {
       max-width: 1100px;
       margin: 20px auto;
@@ -120,7 +131,7 @@
     let keyMapping = Math.random() < 0.5 ? 'original' : 'swapped';
     console.log(`blockOrder=${blockOrder}, setAssignment=${setAssignment}, listType=${listType}, keys=${keyMapping}`);
 
-    const totalQuestions = 4 + 4 + 84;
+    let totalQuestions = 0; // will compute after building sets
     let questionsAnswered = 0;
     let counterDiv = null;
     function createCounter() { counterDiv = document.createElement('div'); counterDiv.className = 'counter'; counterDiv.textContent = `Progress: 0 / ${totalQuestions}`; document.body.appendChild(counterDiv); }
@@ -298,10 +309,24 @@
     const baselineSet = insertCatchTrials(baselineSetRaw, baselineCatch, [20]);
     const dualSet = insertCatchTrials(dualSetRaw, dualCatch, [14, 28]);
 
+    // ==================== FIX: DYNAMIC TOTAL QUESTIONS ====================
+    const totalPractice = practiceTrials.length * 2; // baseline practice + dual practice (each 4 trials)
+    const totalMain = baselineSet.length + dualSet.length;
+    totalQuestions = totalPractice + totalMain;
+
+    // ==================== HELPER: GET DEMOGRAPHICS SAFELY ====================
+    function getDemographicData() {
+      const demoTrial = jsPsych.data.get().filter({ trial_type: 'survey-html-form' }).values()[0];
+      if (demoTrial && demoTrial.response) {
+        return demoTrial.response;
+      }
+      return {};
+    }
+
     // ==================== TRIAL COMPONENTS ====================
     function makeBaselineComponents(item, trialNum, block, isPractice = false) {
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS", data: { trial_type: 'fixation' } };
-      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:36px; text-align:center; line-height:1.4;">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
+      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div class="sentence-text">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
       const ques = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `<div style="font-size:32px; text-align:center; line-height:1.4;">${item.question}</div>`,
@@ -311,7 +336,7 @@
           let resp = data.response === 'c' ? 'NP1' : 'NP2';
           if (keyMapping === 'swapped') resp = resp === 'NP1' ? 'NP2' : 'NP1';
           const corr = (item.correct !== null) ? (resp === item.correct) : null;
-          const demo = jsPsych.data.get().values().find(d => d.participant) || {};
+          const demo = getDemographicData();
           const tdata = {
             participant: demo.participant || '',
             auto_participant_id: autoParticipantID,
@@ -320,7 +345,7 @@
             education: demo.education || '',
             handedness: demo.handedness || '',
             native_language: demo.native_language || '',
-            other_languages: demo.other_languages || '',
+            other_languages: demo.lang_other_text || '',
             group: GROUP,
             years_english: (GROUP === 'EFL' && demo.years_english) ? demo.years_english : 'N/A',
             proficiency: (GROUP === 'EFL' && demo.proficiency) ? demo.proficiency : 'N/A',
@@ -351,6 +376,7 @@
     function makeDualComponents(item, trialNum, block, digitPool, usedSet, isPractice = false) {
       let currentDigits = null;
       let comprehensionData = null;
+      
       const digPres = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: () => {
@@ -362,11 +388,11 @@
         },
         trial_duration: 2000,
         choices: "NO_KEYS",
-        data: { trial_type: 'digit_presentation', digit_sequence: () => currentDigits ? currentDigits.join('') : '' }
+        data: () => ({ trial_type: 'digit_presentation', digit_sequence: currentDigits ? currentDigits.join('') : '' })
       };
       const blank1 = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 500, choices: "NO_KEYS" };
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS" };
-      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:36px; text-align:center; line-height:1.4;">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
+      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div class="sentence-text">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
       const ques = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `<div style="font-size:32px; text-align:center; line-height:1.4;">${item.question}</div>`,
@@ -376,7 +402,7 @@
           let resp = data.response === 'c' ? 'NP1' : 'NP2';
           if (keyMapping === 'swapped') resp = resp === 'NP1' ? 'NP2' : 'NP1';
           const corr = (item.correct !== null) ? (resp === item.correct) : null;
-          const demo = jsPsych.data.get().values().find(d => d.participant) || {};
+          const demo = getDemographicData();
           comprehensionData = {
             participant: demo.participant || '',
             auto_participant_id: autoParticipantID,
@@ -385,7 +411,7 @@
             education: demo.education || '',
             handedness: demo.handedness || '',
             native_language: demo.native_language || '',
-            other_languages: demo.other_languages || '',
+            other_languages: demo.lang_other_text || '',
             group: GROUP,
             years_english: (GROUP === 'EFL' && demo.years_english) ? demo.years_english : 'N/A',
             proficiency: (GROUP === 'EFL' && demo.proficiency) ? demo.proficiency : 'N/A',
@@ -431,6 +457,7 @@
         }
       };
       const blankEnd = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 300, choices: "NO_KEYS" };
+      
       if (isPractice) {
         const recallFeedback = {
           type: jsPsychHtmlKeyboardResponse,
@@ -439,7 +466,14 @@
           choices: "NO_KEYS",
           on_finish: () => { window.lastRecallCorrect = null; }
         };
-        return [digPres, blank1, fix, sent, ques, recallTrial, recallFeedback, blankEnd];
+        const compFeedback = {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: () => { const last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Comprehension correct!</div>' : `<div class="feedback-incorrect">✗ Comprehension correct answer: ${last.correctAnswer}</div>`; },
+          trial_duration: 1500,
+          choices: "NO_KEYS",
+          on_finish: () => { window.lastPractice = null; }
+        };
+        return [digPres, blank1, fix, sent, ques, recallTrial, compFeedback, recallFeedback, blankEnd];
       } else {
         return [digPres, blank1, fix, sent, ques, recallTrial, blankEnd];
       }
@@ -474,7 +508,7 @@
           
           <div class="form-group">
             <label>Highest academic level:</label>
-            <input type="text" id="education" name="education" required placeholder="e.g., Bachelor, Master, PhD">
+            <input type="text" id="education" name="education" required placeholder="e.g., S6, Bachelor, Master, PhD">
           </div>
           
           <div class="form-group">
@@ -515,42 +549,12 @@
           ` : ``}
           
           <div class="form-group full-width">
-            <label>Other languages (select all):</label>
-            <div class="checkbox-group">
-              <label><input type="checkbox" class="lang" name="lang_arabic" value="Arabic"> Arabic</label>
-              <label><input type="checkbox" class="lang" name="lang_moroccan_arabic" value="Moroccan Arabic"> Moroccan Arabic</label>
-              <label><input type="checkbox" class="lang" name="lang_amazigh" value="Amazigh"> Amazigh</label>
-              <label><input type="checkbox" class="lang" name="lang_french" value="French"> French</label>
-              <label><input type="checkbox" class="lang" name="lang_english" value="English"> English</label>
-              <label><input type="checkbox" class="lang" name="lang_spanish" value="Spanish"> Spanish</label>
-              <label><input type="checkbox" class="lang" id="otherCheck" name="lang_other_check" value="other"> Other</label>
-            </div>
-            <div id="otherSpecifyDiv" style="display:none; margin-top:10px;"><label>Please specify:</label><input type="text" id="other_text" name="lang_other_text" placeholder="e.g., Italian, Portuguese"></div>
+            <label>Other languages (please specify):</label>
+            <input type="text" id="lang_other_text" name="lang_other_text" placeholder="e.g., Italian, Portuguese">
           </div>
         </div>
-        <script>
-          var otherCheck = document.getElementById('otherCheck');
-          var otherDiv = document.getElementById('otherSpecifyDiv');
-          if (otherCheck) {
-            otherCheck.addEventListener('change', function() {
-              otherDiv.style.display = this.checked ? 'flex' : 'none';
-            });
-          }
-        <\/script>
       `,
       on_finish: function(data) {
-        let languages = [];
-        if (data.response.lang_arabic) languages.push('Arabic');
-        if (data.response.lang_moroccan_arabic) languages.push('Moroccan Arabic');
-        if (data.response.lang_amazigh) languages.push('Amazigh');
-        if (data.response.lang_french) languages.push('French');
-        if (data.response.lang_english) languages.push('English');
-        if (data.response.lang_spanish) languages.push('Spanish');
-        if (data.response.lang_other_check) {
-          if (data.response.lang_other_text) languages.push(`Other: ${data.response.lang_other_text}`);
-          else languages.push('Other (unspecified)');
-        }
-
         jsPsych.data.addProperties({
           participant: data.response.participant,
           auto_participant_id: autoParticipantID,
@@ -559,7 +563,7 @@
           education: data.response.education,
           handedness: data.response.handedness,
           native_language: data.response.native_language,
-          other_languages: languages.join(', '),
+          other_languages: data.response.lang_other_text || '',
           group: GROUP,
           years_english: (GROUP === 'EFL' && data.response.years_english) ? data.response.years_english : 'N/A',
           proficiency: (GROUP === 'EFL' && data.response.proficiency) ? data.response.proficiency : 'N/A'
@@ -637,7 +641,7 @@
     }
     
     function addDualBlock() {
-      timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:32px;">Part with digit memory task – practice<br><br>You will see 4 digits, then sentence, then answer, then type the digits.<br>After each trial you will see feedback for digit recall.<br><br>Press SPACE</div>', choices: [' '] });
+      timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:32px;">Part with digit memory task – practice<br><br>You will see 4 digits, then sentence, then answer, then type the digits.<br>After each trial you will see feedback for digit recall and comprehension.<br><br>Press SPACE</div>', choices: [' '] });
       let practiceUsed = new Set();
       let practicePool = shuffleDigits([...digitSequences]);
       for (let i = 0; i < practiceTrials.length; i++) timeline.push(...makeDualComponents(practiceTrials[i], i + 1, 'dual_practice', practicePool, practiceUsed, true));
@@ -655,7 +659,7 @@
       addBaselineBlock(); 
     }
     
-    timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div style="font-size:48px; text-align:center; line-height:1.5; margin-top:30vh;">Experiment complete!<br><br>Thank you for participating.<br><br>You may close this window.</div>', choices: [' '] });
+    timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:48px; text-align:center; line-height:1.5; margin-top:30vh;">Experiment complete!<br><br>Thank you for participating.<br><br>Your Participant ID: <strong>${autoParticipantID}</strong><br>Save this ID if you wish to request data deletion.<br><br>You may close this window.</div>`, choices: [' '] });
     
     jsPsych.run(timeline);
   });
