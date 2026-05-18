@@ -324,15 +324,22 @@
     }
 
     // ==================== TRIAL COMPONENTS ====================
+    // --- BASELINE (no digit memory) ---
     function makeBaselineComponents(item, trialNum, block, isPractice = false) {
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS", data: { trial_type: 'fixation' } };
       const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div class="sentence-text">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
+      
+      // Prevent double submission
+      let answered = false;
       const ques = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `<div style="font-size:32px; text-align:center; line-height:1.4;">${item.question}</div>`,
         choices: ['c', 'm'],
         prompt: () => (keyMapping === 'original') ? '<p style="font-size:24px; line-height:1.4;">🔹 C = FIRST noun &nbsp;&nbsp; 🔹 M = SECOND noun</p>' : '<p style="font-size:24px; line-height:1.4;">🔹 C = SECOND noun &nbsp;&nbsp; 🔹 M = FIRST noun</p>',
         on_finish: (data) => {
+          if (answered) return;
+          answered = true;
+          
           let resp = data.response === 'c' ? 'NP1' : 'NP2';
           if (keyMapping === 'swapped') resp = resp === 'NP1' ? 'NP2' : 'NP1';
           const corr = (item.correct !== null) ? (resp === item.correct) : null;
@@ -373,6 +380,7 @@
       return [fix, sent, ques, blank];
     }
     
+    // --- DUAL TASK (with digit memory and recall) ---
     function makeDualComponents(item, trialNum, block, digitPool, usedSet, isPractice = false) {
       let currentDigits = null;
       let comprehensionData = null;
@@ -393,12 +401,18 @@
       const blank1 = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 500, choices: "NO_KEYS" };
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS" };
       const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div class="sentence-text">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
+      
+      // Prevent double submission
+      let answered = false;
       const ques = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `<div style="font-size:32px; text-align:center; line-height:1.4;">${item.question}</div>`,
         choices: ['c', 'm'],
         prompt: () => (keyMapping === 'original') ? '<p style="font-size:24px; line-height:1.4;">🔹 C = FIRST noun &nbsp;&nbsp; 🔹 M = SECOND noun</p>' : '<p style="font-size:24px; line-height:1.4;">🔹 C = SECOND noun &nbsp;&nbsp; 🔹 M = FIRST noun</p>',
         on_finish: (data) => {
+          if (answered) return;
+          answered = true;
+          
           let resp = data.response === 'c' ? 'NP1' : 'NP2';
           if (keyMapping === 'swapped') resp = resp === 'NP1' ? 'NP2' : 'NP1';
           const corr = (item.correct !== null) ? (resp === item.correct) : null;
