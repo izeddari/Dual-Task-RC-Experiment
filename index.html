@@ -15,53 +15,18 @@
     .feedback-incorrect { color: #b13b3b; font-size: 36px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .feedback-digit { color: #1e5f8e; font-size: 28px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .counter { position: fixed; top: 18px; right: 24px; background-color: #1e3a5f; color: white; padding: 8px 16px; border-radius: 40px; font-size: 15px; font-weight: 600; z-index: 10000; pointer-events: none; }
-    
-    .sentence-text {
-      font-size: clamp(20px, 5vw, 36px);
-      text-align: center;
-      line-height: 1.4;
-      max-width: 90%;
-      margin: 0 auto;
-      word-wrap: break-word;
-      white-space: normal;
-    }
-    
-    .demographics-compact {
-      max-width: 1100px;
-      margin: 20px auto;
-      background: #f9f9f9;
-      padding: 20px 30px;
-      border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px 30px;
-    }
+    .sentence-text { font-size: clamp(20px, 5vw, 36px); text-align: center; line-height: 1.4; max-width: 90%; margin: 0 auto; word-wrap: break-word; white-space: normal; }
+    .demographics-compact { max-width: 1100px; margin: 20px auto; background: #f9f9f9; padding: 20px 30px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: grid; grid-template-columns: 1fr 1fr; gap: 20px 30px; }
     .form-group { display: flex; flex-direction: column; margin-bottom: 8px; }
     .form-group label { font-weight: bold; font-size: 15px; margin-bottom: 6px; color: #333; }
     .form-group input, .form-group select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 15px; }
     .full-width { grid-column: span 2; }
-    @media (max-width: 800px) {
-      .demographics-compact { grid-template-columns: 1fr; gap: 15px; }
-      .full-width { grid-column: span 1; }
-    }
-
+    @media (max-width: 800px) { .demographics-compact { grid-template-columns: 1fr; gap: 15px; } .full-width { grid-column: span 1; } }
     .digit-memory { font-size: 82px; font-weight: 700; letter-spacing: 18px; font-family: monospace; color: #1e3a5f; background: #fff4df; padding: 20px 40px; border-radius: 60px; display: inline-block; }
     .digit-label { font-size: 28px; margin-bottom: 20px; color: #4b6f8e; }
     .recall-input { font-size: 48px; text-align: center; width: 250px; padding: 15px; border-radius: 20px; border: 2px solid #ccc; font-family: monospace; letter-spacing: 8px; }
-    
     .instruction-text { font-size: 26px; max-width: 1000px; margin: 0 auto; text-align: center; }
-    .consent-card {
-      max-width: 900px;
-      margin: 30px auto;
-      background: #ffffff;
-      border-radius: 28px;
-      padding: 32px 40px;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.15);
-      text-align: left;
-      font-size: 17px;
-      line-height: 1.5;
-    }
+    .consent-card { max-width: 900px; margin: 30px auto; background: #ffffff; border-radius: 28px; padding: 32px 40px; box-shadow: 0 12px 28px rgba(0,0,0,0.15); text-align: left; font-size: 17px; line-height: 1.5; }
     .consent-card h3 { text-align: center; margin-top: 0; margin-bottom: 20px; font-size: 1.8rem; }
     .consent-card p { margin-bottom: 14px; }
     .consent-card .highlight { background-color: #f0f7ff; padding: 12px 16px; border-radius: 16px; font-weight: 500; margin: 16px 0; }
@@ -74,20 +39,19 @@
 <div id="loading" style="text-align:center; margin-top:50px;">Loading experiment...</div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("loading").style.display = "none";
 
     // ==================== GET PARAMETERS FROM URL ====================
-    const urlParams = new URLSearchParams(window.location.search);
-    const GROUP = urlParams.get('group');
-    const PROLIFIC_ID = urlParams.get('prolific_id') || null;
+    var urlParams = new URLSearchParams(window.location.search);
+    var GROUP = urlParams.get('group');
+    var PROLIFIC_ID = urlParams.get('prolific_id') || null;
     
-    // Simple hash for privacy
-    let PROLIFIC_ID_HASH = null;
+    var PROLIFIC_ID_HASH = null;
     if (PROLIFIC_ID) {
-      let hash = 0;
-      for (let i = 0; i < PROLIFIC_ID.length; i++) {
-        const char = PROLIFIC_ID.charCodeAt(i);
+      var hash = 0;
+      for (var i = 0; i < PROLIFIC_ID.length; i++) {
+        var char = PROLIFIC_ID.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
         hash = hash & hash;
       }
@@ -99,15 +63,13 @@
       document.body.innerHTML = '<div style="text-align:center; margin-top:50px;"><h2>Invalid link</h2><p>Please use the link provided by the researcher.</p></div>';
       throw new Error("Invalid group parameter");
     }
-    console.log("Group: " + GROUP);
-    if (PROLIFIC_ID) console.log("Prolific ID captured (hash: " + PROLIFIC_ID_HASH + ")");
 
     // ==================== MOBILE DETECTION ====================
     function isMobilePhone() {
-      const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-      const mobileUA = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const isSmallScreen = window.innerWidth <= 768;
-      const isTablet = /iPad|Android(?!.*Mobile)/i.test(navigator.userAgent);
+      var hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      var mobileUA = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      var isSmallScreen = window.innerWidth <= 768;
+      var isTablet = /iPad|Android(?!.*Mobile)/i.test(navigator.userAgent);
       return (mobileUA || isTablet) && (hasTouch || isSmallScreen);
     }
     if (isMobilePhone()) {
@@ -117,44 +79,44 @@
     }
 
     // ==================== INITIALIZE JSPSYCH ====================
-    const jsPsych = initJsPsych({ 
-      on_finish: () => { 
+    var jsPsych = initJsPsych({ 
+      on_finish: function() { 
         if (counterDiv) counterDiv.remove(); 
       } 
     });
     window.jsPsych = jsPsych;
 
     // ==================== COUNTERBALANCING ====================
-    let blockOrder = Math.random() < 0.5 ? 'baseline_first' : 'dual_first';
-    let setAssignment = Math.random() < 0.5 ? 'normal' : 'swapped';
-    let listType = Math.random() < 0.5 ? 'A' : 'B';
-    let keyMapping = Math.random() < 0.5 ? 'original' : 'swapped';
-    console.log("blockOrder=" + blockOrder + ", setAssignment=" + setAssignment + ", listType=" + listType + ", keys=" + keyMapping);
+    var blockOrder = Math.random() < 0.5 ? 'baseline_first' : 'dual_first';
+    var setAssignment = Math.random() < 0.5 ? 'normal' : 'swapped';
+    var listType = Math.random() < 0.5 ? 'A' : 'B';
+    var keyMapping = Math.random() < 0.5 ? 'original' : 'swapped';
 
-    let totalQuestions = 0;
-    let questionsAnswered = 0;
-    let counterDiv = null;
+    var totalQuestions = 0;
+    var questionsAnswered = 0;
+    var counterDiv = null;
     function createCounter() { counterDiv = document.createElement('div'); counterDiv.className = 'counter'; counterDiv.textContent = "Progress: 0 / " + totalQuestions; document.body.appendChild(counterDiv); }
     function updateCounter() { if (counterDiv) counterDiv.textContent = "Progress: " + questionsAnswered + " / " + totalQuestions; }
     function incrementCounter() { questionsAnswered++; updateCounter(); }
 
-    const autoParticipantID = "auto_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
-    const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbw_QpDtAlebJz6RRv5AR9iosfugDPAJux3OcrXuaXDkHFvhfzmxvlMBXvQaZDJOiHbx/exec";
+    var autoParticipantID = "auto_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+    var GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbw_QpDtAlebJz6RRv5AR9iosfugDPAJux3OcrXuaXDkHFvhfzmxvlMBXvQaZDJOiHbx/exec";
     
     function sendToGoogleSheets(dataRow) {
       fetch(GOOGLE_SHEETS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dataRow) })
         .catch(function(err) { console.error("Send error:", err); });
     }
 
-    // ==================== STIMULI ====================
-    const practiceTrials = [
+    // ==================== PRACTICE TRIALS ====================
+    var practiceTrials = [
       { sentence: "The manager of the employees who was reading a book stayed late.", question: "Who was reading a book? FIRST noun (manager) or SECOND noun (employees)?", correct: "NP1" },
       { sentence: "The supervisor of the workers who were arguing in the hallway called security.", question: "Who was arguing in the hallway? FIRST noun (supervisor) or SECOND noun (workers)?", correct: "NP2" },
       { sentence: "The baker who baked the bread won an award.", question: "Who baked the bread? FIRST noun (baker) or SECOND noun (bread)?", correct: "NP1" },
       { sentence: "The cat chased the mouse that was hiding under the couch.", question: "What was hiding under the couch? FIRST noun (cat) or SECOND noun (mouse)?", correct: "NP2" }
     ];
 
-    const rawPairs = [
+    // ==================== EXPERIMENTAL STIMULI ====================
+    var rawPairs = [
       ["The girl asked the driver of the players who was talking to an old woman.", "The girl asked the driver of the players who were talking to an old woman.", "Who was talking to an old woman? FIRST noun (driver) or SECOND noun (players)?", "NP1", "NP2"],
       ["The father of the kids who found himself broke lost his job.", "The father of the kids who found themselves broke lost his job.", "Who was broke? FIRST noun (father) or SECOND noun (kids)?", "NP1", "NP2"],
       ["The chairman of the writers who calls himself a wealthy person signed the contract.", "The chairman of the writers who call themselves wealthy persons signed the contract.", "Who was a wealthy person? FIRST noun (chairman) or SECOND noun (writers)?", "NP1", "NP2"],
@@ -189,14 +151,14 @@
       ["The witness of the drivers who bought herself a coffee waited for the police.", "The witness of the drivers who bought themselves a coffee waited for the police.", "Who bought coffee? FIRST noun (witness) or SECOND noun (drivers)?", "NP1", "NP2"]
     ];
 
-    const experimentalItems = [];
-    for (let i = 0; i < rawPairs.length; i++) {
-      const ha = rawPairs[i][0];
-      const la = rawPairs[i][1];
-      const q = rawPairs[i][2];
-      const correctHA = rawPairs[i][3];
-      const correctLA = rawPairs[i][4];
-      let sentence, correct;
+    var experimentalItems = [];
+    for (var i = 0; i < rawPairs.length; i++) {
+      var ha = rawPairs[i][0];
+      var la = rawPairs[i][1];
+      var q = rawPairs[i][2];
+      var correctHA = rawPairs[i][3];
+      var correctLA = rawPairs[i][4];
+      var sentence, correct;
       if (listType === 'A') {
         if (i < 16) { sentence = ha; correct = correctHA; }
         else { sentence = la; correct = correctLA; }
@@ -207,7 +169,7 @@
       experimentalItems.push({ sentence: sentence, question: q, correct: correct, type: 'pair' });
     }
 
-    const ambiguousRaw = [
+    var ambiguousRaw = [
       ["Someone shot the servant of the actress who was on the balcony.", "Who was on the balcony? FIRST noun (servant) or SECOND noun (actress)?"],
       ["The brother of the teacher who was tired went home.", "Who was tired? FIRST noun (brother) or SECOND noun (teacher)?"],
       ["The son of the guest who was nervous spoke.", "Who was nervous? FIRST noun (son) or SECOND noun (guest)?"],
@@ -241,12 +203,12 @@
       ["The supervisor of the colleague who was fixing the computer stayed late.", "Who was fixing the computer? FIRST noun (supervisor) or SECOND noun (colleague)?"],
       ["The nephew of the neighbor who was painting the mural arrived at noon.", "Who was painting the mural? FIRST noun (nephew) or SECOND noun (neighbor)?"]
     ];
-    const ambiguousItems = [];
+    var ambiguousItems = [];
     for (var i = 0; i < ambiguousRaw.length; i++) {
       ambiguousItems.push({ sentence: ambiguousRaw[i][0], question: ambiguousRaw[i][1], correct: null, type: 'ambiguous' });
     }
 
-    const fillerRaw = [
+    var fillerRaw = [
       ["The teacher scolded the student who was late for class.", "Who was late for class? FIRST noun (teacher) or SECOND noun (student)?", "NP2"],
       ["The dog chased the cat that ran into the garden.", "Who ran into the garden? FIRST noun (dog) or SECOND noun (cat)?", "NP2"],
       ["The policeman helped the old woman who had lost her wallet.", "Who lost her wallet? FIRST noun (policeman) or SECOND noun (woman)?", "NP2"],
@@ -268,21 +230,21 @@
       ["The waiter served the couple who ordered the special dish.", "Who ordered the special dish? FIRST noun (waiter) or SECOND noun (couple)?", "NP2"],
       ["The neighbor heard the noise that came from the basement.", "What came from the basement? FIRST noun (neighbor) or SECOND noun (noise)?", "NP2"]
     ];
-    const fillers = [];
+    var fillers = [];
     for (var i = 0; i < fillerRaw.length; i++) {
       fillers.push({ sentence: fillerRaw[i][0], question: fillerRaw[i][1], correct: fillerRaw[i][2], type: 'filler' });
     }
 
-    const catchTrialsPool = [
+    var catchTrialsPool = [
       { sentence: "The sun is a star, but the moon is not a star.", question: "Which is a star? FIRST noun (sun) or SECOND noun (moon)?", correct: "NP1", type: 'catch' },
       { sentence: "A fish does not have feathers, but a bird has feathers.", question: "Which has feathers? FIRST noun (fish) or SECOND noun (bird)?", correct: "NP2", type: 'catch' },
       { sentence: "A bird has feathers, but a fish does not have feathers.", question: "Which has feathers? FIRST noun (bird) or SECOND noun (fish)?", correct: "NP1", type: 'catch' },
       { sentence: "The moon is not a star, but the sun is a star.", question: "Which is a star? FIRST noun (moon) or SECOND noun (sun)?", correct: "NP2", type: 'catch' }
     ];
-    const baselineCatch = [catchTrialsPool[0]];
-    const dualCatch = [catchTrialsPool[1], catchTrialsPool[2]];
+    var baselineCatch = [catchTrialsPool[0]];
+    var dualCatch = [catchTrialsPool[1], catchTrialsPool[2]];
 
-    const digitSequences = [
+    var digitSequences = [
       [2,5,7,1], [4,9,3,6], [8,1,4,2], [7,3,9,5], [6,2,8,4], [1,7,4,9], [3,8,2,6], [5,1,9,3], [9,4,6,2], [2,8,5,7],
       [3,5,1,8], [6,9,2,4], [7,1,5,3], [4,2,9,7], [8,6,3,1], [9,3,7,4], [1,5,8,2], [2,7,4,6], [5,9,3,8], [6,1,7,9],
       [8,4,1,5], [3,9,6,2], [7,5,2,9], [1,8,3,6], [4,7,9,2], [2,4,8,3], [6,3,5,9], [9,1,2,5], [5,8,7,4], [3,6,1,7],
@@ -292,10 +254,10 @@
     ];
 
     function shuffleDigits(arr) { 
-      let copy = arr.slice();
-      for (let i = copy.length - 1; i > 0; i--) { 
-        const j = Math.floor(Math.random() * (i + 1)); 
-        let temp = copy[i];
+      var copy = arr.slice();
+      for (var i = copy.length - 1; i > 0; i--) { 
+        var j = Math.floor(Math.random() * (i + 1)); 
+        var temp = copy[i];
         copy[i] = copy[j];
         copy[j] = temp;
       } 
@@ -303,48 +265,46 @@
     }
     
     function shuffle(arr) { 
-      for (let i = arr.length - 1; i > 0; i--) { 
-        const j = Math.floor(Math.random() * (i + 1)); 
-        let temp = arr[i];
+      for (var i = arr.length - 1; i > 0; i--) { 
+        var j = Math.floor(Math.random() * (i + 1)); 
+        var temp = arr[i];
         arr[i] = arr[j];
         arr[j] = temp;
       } 
       return arr; 
     }
 
-    // Create two matched sets
-    const shuffledExp = shuffle(experimentalItems.slice());
-    const expSet1 = shuffledExp.slice(0, 16);
-    const expSet2 = shuffledExp.slice(16, 32);
-    const shuffledAmbig = shuffle(ambiguousItems.slice());
-    const ambigSet1 = shuffledAmbig.slice(0, 16);
-    const ambigSet2 = shuffledAmbig.slice(16, 32);
-    const shuffledFillers = shuffle(fillers.slice());
-    const fillerSet1 = shuffledFillers.slice(0, 10);
-    const fillerSet2 = shuffledFillers.slice(10, 20);
-    const completeSet1 = shuffle(expSet1.concat(ambigSet1).concat(fillerSet1));
-    const completeSet2 = shuffle(expSet2.concat(ambigSet2).concat(fillerSet2));
-    let baselineSetRaw, dualSetRaw;
+    var shuffledExp = shuffle(experimentalItems.slice());
+    var expSet1 = shuffledExp.slice(0, 16);
+    var expSet2 = shuffledExp.slice(16, 32);
+    var shuffledAmbig = shuffle(ambiguousItems.slice());
+    var ambigSet1 = shuffledAmbig.slice(0, 16);
+    var ambigSet2 = shuffledAmbig.slice(16, 32);
+    var shuffledFillers = shuffle(fillers.slice());
+    var fillerSet1 = shuffledFillers.slice(0, 10);
+    var fillerSet2 = shuffledFillers.slice(10, 20);
+    var completeSet1 = shuffle(expSet1.concat(ambigSet1).concat(fillerSet1));
+    var completeSet2 = shuffle(expSet2.concat(ambigSet2).concat(fillerSet2));
+    var baselineSetRaw, dualSetRaw;
     if (setAssignment === 'normal') { baselineSetRaw = completeSet1.slice(); dualSetRaw = completeSet2.slice(); }
     else { baselineSetRaw = completeSet2.slice(); dualSetRaw = completeSet1.slice(); }
     
     function insertCatchTrials(itemArray, catchTrials, positions) {
-      const result = itemArray.slice();
-      for (let i = positions.length - 1; i >= 0; i--) {
-        const idx = positions[i];
+      var result = itemArray.slice();
+      for (var i = positions.length - 1; i >= 0; i--) {
+        var idx = positions[i];
         if (idx >= 0 && idx <= result.length) result.splice(idx, 0, catchTrials[i]);
       }
       return result;
     }
-    const baselineSet = insertCatchTrials(baselineSetRaw, baselineCatch, [20]);
-    const dualSet = insertCatchTrials(dualSetRaw, dualCatch, [14, 28]);
+    var baselineSet = insertCatchTrials(baselineSetRaw, baselineCatch, [20]);
+    var dualSet = insertCatchTrials(dualSetRaw, dualCatch, [14, 28]);
 
-    const totalPractice = practiceTrials.length * 2;
-    const totalMain = baselineSet.length + dualSet.length;
+    var totalPractice = practiceTrials.length * 2;
+    var totalMain = baselineSet.length + dualSet.length;
     totalQuestions = totalPractice + totalMain;
 
-    // Store demographic data for access across trials
-    let storedDemographics = {
+    var storedDemographics = {
       participant: '',
       age: '',
       gender: '',
@@ -361,28 +321,44 @@
       return storedDemographics;
     }
 
+    // ==================== HELPER FUNCTIONS ====================
+    function getPromptText() {
+      if (keyMapping === 'original') {
+        return '<p style="font-size:24px; line-height:1.4;">🔹 C = FIRST noun &nbsp;&nbsp; 🔹 M = SECOND noun</p>';
+      } else {
+        return '<p style="font-size:24px; line-height:1.4;">🔹 C = SECOND noun &nbsp;&nbsp; 🔹 M = FIRST noun</p>';
+      }
+    }
+
+    function decodeResponse(response) {
+      var resp = response === 'c' ? 'NP1' : 'NP2';
+      if (keyMapping === 'swapped') {
+        resp = resp === 'NP1' ? 'NP2' : 'NP1';
+      }
+      return resp;
+    }
+
     // ==================== TRIAL COMPONENTS ====================
     function makeBaselineComponents(item, trialNum, block, isPractice) {
       if (isPractice === undefined) isPractice = false;
       
-      const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS", data: { trial_type: 'fixation' } };
-      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="sentence-text">' + item.sentence + '</div>', trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
+      var fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS", data: { trial_type: 'fixation' } };
+      var sent = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="sentence-text">' + item.sentence + '</div>', trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
       
-      let answered = false;
-      const ques = {
+      var answered = false;
+      var ques = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: '<div style="font-size:32px; text-align:center; line-height:1.4;">' + item.question + '</div>',
         choices: ['c', 'm'],
-        prompt: (keyMapping === 'original') ? '<p style="font-size:24px; line-height:1.4;">🔹 C = FIRST noun &nbsp;&nbsp; 🔹 M = SECOND noun</p>' : '<p style="font-size:24px; line-height:1.4;">🔹 C = SECOND noun &nbsp;&nbsp; 🔹 M = FIRST noun</p>',
+        prompt: getPromptText(),
         on_finish: function(data) {
           if (answered) return;
           answered = true;
           
-          let resp = data.response === 'c' ? 'NP1' : 'NP2';
-          if (keyMapping === 'swapped') resp = resp === 'NP1' ? 'NP2' : 'NP1';
-          const corr = (item.correct !== null) ? (resp === item.correct) : null;
-          const demo = getDemographicData();
-          const tdata = {
+          var resp = decodeResponse(data.response);
+          var corr = (item.correct !== null) ? (resp === item.correct) : null;
+          var demo = getDemographicData();
+          var tdata = {
             participant: demo.participant || '',
             auto_participant_id: autoParticipantID,
             prolific_id: PROLIFIC_ID,
@@ -417,19 +393,19 @@
           if (isPractice) window.lastPractice = { correct: corr, correctAnswer: item.correct };
         }
       };
-      const blank = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 300, choices: "NO_KEYS", data: { trial_type: 'iti' } };
+      var blank = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 300, choices: "NO_KEYS", data: { trial_type: 'iti' } };
       return [fix, sent, ques, blank];
     }
     
     function makeDualComponents(item, trialNum, block, digitPool, usedSet, isPractice) {
       if (isPractice === undefined) isPractice = false;
-      let currentDigits = null;
-      let comprehensionData = null;
+      var currentDigits = null;
+      var comprehensionData = null;
       
-      const digPres = {
+      var digPres = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: function() {
-          let avail = digitPool.filter(function(s) { return !usedSet.has(JSON.stringify(s)); });
+          var avail = digitPool.filter(function(s) { return !usedSet.has(JSON.stringify(s)); });
           if (avail.length === 0) { usedSet.clear(); currentDigits = digitPool[Math.floor(Math.random() * digitPool.length)]; }
           else { currentDigits = avail[Math.floor(Math.random() * avail.length)]; }
           usedSet.add(JSON.stringify(currentDigits));
@@ -439,24 +415,23 @@
         choices: "NO_KEYS",
         data: function() { return { trial_type: 'digit_presentation', digit_sequence: currentDigits ? currentDigits.join('') : '' }; }
       };
-      const blank1 = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 500, choices: "NO_KEYS" };
-      const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS" };
-      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="sentence-text">' + item.sentence + '</div>', trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
+      var blank1 = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 500, choices: "NO_KEYS" };
+      var fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS" };
+      var sent = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="sentence-text">' + item.sentence + '</div>', trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
       
-      let answered = false;
-      const ques = {
+      var answered = false;
+      var ques = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: '<div style="font-size:32px; text-align:center; line-height:1.4;">' + item.question + '</div>',
         choices: ['c', 'm'],
-        prompt: (keyMapping === 'original') ? '<p style="font-size:24px; line-height:1.4;">🔹 C = FIRST noun &nbsp;&nbsp; 🔹 M = SECOND noun</p>' : '<p style="font-size:24px; line-height:1.4;">🔹 C = SECOND noun &nbsp;&nbsp; 🔹 M = FIRST noun</p>',
+        prompt: getPromptText(),
         on_finish: function(data) {
           if (answered) return;
           answered = true;
           
-          let resp = data.response === 'c' ? 'NP1' : 'NP2';
-          if (keyMapping === 'swapped') resp = resp === 'NP1' ? 'NP2' : 'NP1';
-          const corr = (item.correct !== null) ? (resp === item.correct) : null;
-          const demo = getDemographicData();
+          var resp = decodeResponse(data.response);
+          var corr = (item.correct !== null) ? (resp === item.correct) : null;
+          var demo = getDemographicData();
           comprehensionData = {
             participant: demo.participant || '',
             auto_participant_id: autoParticipantID,
@@ -493,7 +468,7 @@
           if (isPractice) window.lastPractice = { correct: corr, correctAnswer: item.correct };
         }
       };
-      const recallTrial = {
+      var recallTrial = {
         type: jsPsychSurveyHtmlForm,
         html: '<div style="text-align:center;">' +
           '<p style="font-size:28px; line-height:1.5;">Enter the 4 digits in the same order:</p>' +
@@ -501,11 +476,16 @@
           '<p style="margin-top:20px; font-size:20px;">Press Enter or click Submit</p>' +
         '</div>',
         on_finish: function(data) {
-          const recalled = data.response.recall || '';
-          const presented = currentDigits ? currentDigits.join('') : '';
-          const recCorrect = (presented === recalled);
+          var recalled = data.response.recall || '';
+          var presented = currentDigits ? currentDigits.join('') : '';
+          var recCorrect = (presented === recalled);
           if (comprehensionData) {
-            const recallRow = Object.assign({}, comprehensionData, { recall_correct: recCorrect, recalled_digits: recalled, recall_rt: data.rt, is_recall_row: true });
+            var recallRow = {};
+            for (var key in comprehensionData) { recallRow[key] = comprehensionData[key]; }
+            recallRow.recall_correct = recCorrect;
+            recallRow.recalled_digits = recalled;
+            recallRow.recall_rt = data.rt;
+            recallRow.is_recall_row = true;
             sendToGoogleSheets(recallRow);
           } else {
             sendToGoogleSheets({ trial_num: trialNum, block: block, recall_correct: recCorrect, recalled_digits: recalled, recall_rt: data.rt, is_recall_row: true, auto_participant_id: autoParticipantID, prolific_id: PROLIFIC_ID, prolific_id_hash: PROLIFIC_ID_HASH, group: GROUP });
@@ -513,19 +493,19 @@
           if (isPractice) window.lastRecallCorrect = recCorrect;
         }
       };
-      const blankEnd = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 300, choices: "NO_KEYS" };
+      var blankEnd = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 300, choices: "NO_KEYS" };
       
       if (isPractice) {
-        const recallFeedback = {
+        var recallFeedback = {
           type: jsPsychHtmlKeyboardResponse,
-          stimulus: function() { const correct = window.lastRecallCorrect; return correct ? '<div class="feedback-digit">✓ Digit recall: correct</div>' : '<div class="feedback-digit">✗ Digit recall: incorrect</div>'; },
+          stimulus: function() { var correct = window.lastRecallCorrect; return correct ? '<div class="feedback-digit">✓ Digit recall: correct</div>' : '<div class="feedback-digit">✗ Digit recall: incorrect</div>'; },
           trial_duration: 1000,
           choices: "NO_KEYS",
           on_finish: function() { window.lastRecallCorrect = null; }
         };
-        const compFeedback = {
+        var compFeedback = {
           type: jsPsychHtmlKeyboardResponse,
-          stimulus: function() { const last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Comprehension correct!</div>' : '<div class="feedback-incorrect">✗ Comprehension correct answer: ' + last.correctAnswer + '</div>'; },
+          stimulus: function() { var last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Comprehension correct!</div>' : '<div class="feedback-incorrect">✗ Comprehension correct answer: ' + last.correctAnswer + '</div>'; },
           trial_duration: 1500,
           choices: "NO_KEYS",
           on_finish: function() { window.lastPractice = null; }
@@ -536,8 +516,8 @@
       }
     }
     
-    // ==================== DEMOGRAPHICS TRIAL ====================
-    let demographicsHtml = '<div class="demographics-compact">' +
+    // ==================== DEMOGRAPHICS HTML ====================
+    var demographicsHtml = '<div class="demographics-compact">' +
       '<h3 style="text-align:center; grid-column: span 2; margin-top: 0;">Participant Information</h3>' +
       '<div class="form-group">' +
       '<label>Participant ID (create a non-identifying ID, e.g., BlueTiger27):</label>' +
@@ -622,23 +602,13 @@
       '</div>' +
       '</div>';
     
-    if (GROUP === 'native') {
-      demographicsHtml += '<script>' +
-        'document.getElementById("country").addEventListener("change", function() {' +
-        'var otherGroup = document.getElementById("otherCountryGroup");' +
-        'if (this.value === "Other") { otherGroup.style.display = "flex"; }' +
-        'else { otherGroup.style.display = "none"; }' +
-        '});' +
-        '</script>';
-    }
-    
-    const demographicsTrial = {
+    var demographicsTrial = {
       type: jsPsychSurveyHtmlForm,
       html: demographicsHtml,
       on_finish: function(data) {
-        const response = data.response;
+        var response = data.response;
         
-        let countryValue = 'N/A';
+        var countryValue = 'N/A';
         if (GROUP === 'native') {
           countryValue = response.country === 'Other' ? response.other_country : response.country;
         }
@@ -676,7 +646,7 @@
     };
 
     // ==================== BUILD TIMELINE ====================
-    let timeline = [];
+    var timeline = [];
 
     // Consent Form
     timeline.push({
@@ -727,7 +697,7 @@
     timeline.push({ 
       type: jsPsychHtmlKeyboardResponse, 
       stimulus: function() {
-        const bindingInfo = (keyMapping === 'original') ? 'C = FIRST noun, M = SECOND noun' : 'C = SECOND noun, M = FIRST noun';
+        var bindingInfo = (keyMapping === 'original') ? 'C = FIRST noun, M = SECOND noun' : 'C = SECOND noun, M = FIRST noun';
         return '<div class="instruction-text"><h2>Instructions</h2><p>You will see a sentence for 5 seconds, then a question. Press <strong>C</strong> or <strong>M</strong>.</p><p><strong>' + bindingInfo + '</strong></p><p>The experiment has two parts. Each part starts with a short practice.</p><p>Press SPACE to begin.</p></div>';
       }, 
       choices: [' '] 
@@ -737,32 +707,32 @@
     
     function addBaselineBlock() {
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Part with sentences only – practice<br><br>Press SPACE</div>', choices: [' '] });
-      for (let i = 0; i < practiceTrials.length; i++) {
-        let comps = makeBaselineComponents(practiceTrials[i], i + 1, 'practice_baseline', true);
-        let fb = { type: jsPsychHtmlKeyboardResponse, stimulus: function() { let last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : '<div class="feedback-incorrect">✗ Correct answer: ' + last.correctAnswer + '</div>'; }, trial_duration: 1500, choices: "NO_KEYS" };
+      for (var i = 0; i < practiceTrials.length; i++) {
+        var comps = makeBaselineComponents(practiceTrials[i], i + 1, 'practice_baseline', true);
+        var fb = { type: jsPsychHtmlKeyboardResponse, stimulus: function() { var last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : '<div class="feedback-incorrect">✗ Correct answer: ' + last.correctAnswer + '</div>'; }, trial_duration: 1500, choices: "NO_KEYS" };
         timeline.push(comps[0], comps[1], comps[2], fb, comps[3]);
       }
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Now the main sentences (no digits)<br><br>Press SPACE</div>', choices: [' '] });
-      for (let i = 0; i < baselineSet.length; i++) {
-        let comps = makeBaselineComponents(baselineSet[i], i + 1, 'baseline_main', false);
+      for (var i = 0; i < baselineSet.length; i++) {
+        var comps = makeBaselineComponents(baselineSet[i], i + 1, 'baseline_main', false);
         timeline.push(comps[0], comps[1], comps[2], comps[3]);
       }
     }
     
     function addDualBlock() {
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:32px;">Part with digit memory task – practice<br><br>You will see 4 digits, then sentence, then answer, then type the digits.<br>After each trial you will see feedback for digit recall and comprehension.<br><br>Press SPACE</div>', choices: [' '] });
-      let practiceUsed = new Set();
-      let practicePool = shuffleDigits(digitSequences.slice());
-      for (let i = 0; i < practiceTrials.length; i++) {
-        let comps = makeDualComponents(practiceTrials[i], i + 1, 'dual_practice', practicePool, practiceUsed, true);
-        for (let j = 0; j < comps.length; j++) timeline.push(comps[j]);
+      var practiceUsed = new Set();
+      var practicePool = shuffleDigits(digitSequences.slice());
+      for (var i = 0; i < practiceTrials.length; i++) {
+        var comps = makeDualComponents(practiceTrials[i], i + 1, 'dual_practice', practicePool, practiceUsed, true);
+        for (var j = 0; j < comps.length; j++) timeline.push(comps[j]);
       }
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Now the main sentences with digit memory task<br><br>Remember the digits, read the sentence, answer, then type the digits.<br><br>Press SPACE</div>', choices: [' '] });
-      let mainUsed = new Set();
-      let mainPool = shuffleDigits(digitSequences.slice());
-      for (let i = 0; i < dualSet.length; i++) {
-        let comps = makeDualComponents(dualSet[i], i + 1, 'dual_main', mainPool, mainUsed, false);
-        for (let j = 0; j < comps.length; j++) timeline.push(comps[j]);
+      var mainUsed = new Set();
+      var mainPool = shuffleDigits(digitSequences.slice());
+      for (var i = 0; i < dualSet.length; i++) {
+        var comps = makeDualComponents(dualSet[i], i + 1, 'dual_main', mainPool, mainUsed, false);
+        for (var j = 0; j < comps.length; j++) timeline.push(comps[j]);
       }
     }
     
