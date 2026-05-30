@@ -329,12 +329,11 @@
     const totalMain = baselineSet.length + dualSet.length;
     totalQuestions = totalPractice + totalMain;
 
+    // Store demographic data for access across trials
+    let storedDemographics = {};
+
     function getDemographicData() {
-      const demoTrial = jsPsych.data.get().filter({ trial_type: 'survey-html-form' }).values()[0];
-      if (demoTrial && demoTrial.response) {
-        return demoTrial.response;
-      }
-      return {};
+      return storedDemographics;
     }
 
     // ==================== TRIAL COMPONENTS ====================
@@ -366,7 +365,8 @@
             education: demo.education || '',
             handedness: demo.handedness || '',
             native_language: demo.native_language || '',
-            other_languages: demo.lang_other_text || '',
+            country_of_residence: demo.country_of_residence || 'N/A',
+            other_languages: demo.other_languages || '',
             group: GROUP,
             years_english: (GROUP === 'EFL' && demo.years_english) ? demo.years_english : 'N/A',
             proficiency: (GROUP === 'EFL' && demo.proficiency) ? demo.proficiency : 'N/A',
@@ -439,7 +439,8 @@
             education: demo.education || '',
             handedness: demo.handedness || '',
             native_language: demo.native_language || '',
-            other_languages: demo.lang_other_text || '',
+            country_of_residence: demo.country_of_residence || 'N/A',
+            other_languages: demo.other_languages || '',
             group: GROUP,
             years_english: (GROUP === 'EFL' && demo.years_english) ? demo.years_english : 'N/A',
             proficiency: (GROUP === 'EFL' && demo.proficiency) ? demo.proficiency : 'N/A',
@@ -536,7 +537,7 @@
           
           <div class="form-group">
             <label>Highest academic level:</label>
-            <input type="text" id="education" name="education" required placeholder="e.g., S6, Bachelor, Master, PhD">
+            <input type="text" id="education" name="education" required placeholder="e.g., Bachelor, Master, PhD">
           </div>
           
           <div class="form-group">
@@ -553,6 +554,41 @@
             <label>Native language:</label>
             <input type="text" id="native_language" name="native_language" required placeholder="e.g., English, Arabic, French">
           </div>
+
+          ${GROUP === 'native' ? `
+          <div class="form-group full-width">
+            <label>Country of residence:</label>
+            <select id="country" name="country" required>
+              <option value="">--Select--</option>
+              <option value="United Kingdom">United Kingdom</option>
+              <option value="United States">United States</option>
+              <option value="Canada">Canada</option>
+              <option value="Australia">Australia</option>
+              <option value="New Zealand">New Zealand</option>
+              <option value="Ireland">Ireland</option>
+              <option value="Other">Other (please specify below)</option>
+            </select>
+          </div>
+          <div class="form-group full-width" id="otherCountryGroup" style="display:none;">
+            <label>Please specify your country:</label>
+            <input type="text" id="other_country" name="other_country" placeholder="e.g., South Africa">
+          </div>
+          <script>
+            (function() {
+              const countrySelect = document.getElementById('country');
+              if (countrySelect) {
+                countrySelect.addEventListener('change', function() {
+                  const otherGroup = document.getElementById('otherCountryGroup');
+                  if (this.value === 'Other') {
+                    otherGroup.style.display = 'flex';
+                  } else {
+                    otherGroup.style.display = 'none';
+                  }
+                });
+              }
+            })();
+          </script>
+          ` : ``}
 
           ${GROUP === 'EFL' ? `
           <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px 30px;">
@@ -583,20 +619,43 @@
         </div>
       `,
       on_finish: function(data) {
+        const response = data.response;
+        
+        // For native group, combine country fields
+        let countryValue = 'N/A';
+        if (GROUP === 'native') {
+          countryValue = response.country === 'Other' ? response.other_country : response.country;
+        }
+        
+        // Store demographics for access across trials
+        storedDemographics = {
+          participant: response.participant,
+          age: response.age,
+          gender: response.gender,
+          education: response.education,
+          handedness: response.handedness,
+          native_language: response.native_language,
+          country_of_residence: countryValue,
+          other_languages: response.lang_other_text || '',
+          years_english: (GROUP === 'EFL' && response.years_english) ? response.years_english : 'N/A',
+          proficiency: (GROUP === 'EFL' && response.proficiency) ? response.proficiency : 'N/A'
+        };
+        
         jsPsych.data.addProperties({
-          participant: data.response.participant,
+          participant: response.participant,
           auto_participant_id: autoParticipantID,
           prolific_id: PROLIFIC_ID,
           prolific_id_hash: PROLIFIC_ID_HASH,
-          age: data.response.age,
-          gender: data.response.gender,
-          education: data.response.education,
-          handedness: data.response.handedness,
-          native_language: data.response.native_language,
-          other_languages: data.response.lang_other_text || '',
+          age: response.age,
+          gender: response.gender,
+          education: response.education,
+          handedness: response.handedness,
+          native_language: response.native_language,
+          country_of_residence: countryValue,
+          other_languages: response.lang_other_text || '',
           group: GROUP,
-          years_english: (GROUP === 'EFL' && data.response.years_english) ? data.response.years_english : 'N/A',
-          proficiency: (GROUP === 'EFL' && data.response.proficiency) ? data.response.proficiency : 'N/A'
+          years_english: (GROUP === 'EFL' && response.years_english) ? response.years_english : 'N/A',
+          proficiency: (GROUP === 'EFL' && response.proficiency) ? response.proficiency : 'N/A'
         });
       }
     };
