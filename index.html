@@ -40,10 +40,6 @@
     .form-group { display: flex; flex-direction: column; margin-bottom: 8px; }
     .form-group label { font-weight: bold; font-size: 15px; margin-bottom: 6px; color: #333; }
     .form-group input, .form-group select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 15px; }
-    .checkbox-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 15px; margin-top: 6px; }
-    .checkbox-group label { font-weight: normal; font-size: 14px; }
-    .other-specify { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
-    .other-specify input { flex: 1; }
     .full-width { grid-column: span 2; }
     @media (max-width: 800px) {
       .demographics-compact { grid-template-columns: 1fr; gap: 15px; }
@@ -86,7 +82,7 @@
     const GROUP = urlParams.get('group');
     const PROLIFIC_ID = urlParams.get('prolific_id') || null;
     
-    // Simple hash for privacy (non-cryptographic but sufficient for duplicate detection)
+    // Simple hash for privacy
     let PROLIFIC_ID_HASH = null;
     if (PROLIFIC_ID) {
       let hash = 0;
@@ -103,8 +99,8 @@
       document.body.innerHTML = '<div style="text-align:center; margin-top:50px;"><h2>Invalid link</h2><p>Please use the link provided by the researcher.</p></div>';
       throw new Error("Invalid group parameter");
     }
-    console.log(`Group: ${GROUP}`);
-    if (PROLIFIC_ID) console.log(`Prolific ID captured (hash: ${PROLIFIC_ID_HASH})`);
+    console.log("Group: " + GROUP);
+    if (PROLIFIC_ID) console.log("Prolific ID captured (hash: " + PROLIFIC_ID_HASH + ")");
 
     // ==================== MOBILE DETECTION ====================
     function isMobilePhone() {
@@ -118,16 +114,6 @@
       alert("This experiment requires a physical keyboard (laptop or desktop computer). Please switch to a computer with a keyboard.");
       document.body.innerHTML = '<div style="text-align:center; margin-top:50px;"><h2>Device not supported</h2><p>This experiment requires a physical keyboard. Please use a laptop or desktop computer.</p></div>';
       throw new Error("Mobile phone/tablet blocked");
-    }
-    if (('ontouchstart' in window) && !isMobilePhone()) {
-      const warnDiv = document.createElement('div');
-      warnDiv.className = 'warning-box';
-      warnDiv.innerHTML = '<strong>⚠️ Note</strong><br>You are using a touchscreen device. Please ensure you use the physical keyboard to press C and M keys.<br><br>Press SPACE to continue.';
-      document.body.prepend(warnDiv);
-      document.addEventListener('keydown', function removeWarn() {
-        if (warnDiv.parentNode) warnDiv.remove();
-        document.removeEventListener('keydown', removeWarn);
-      });
     }
 
     // ==================== INITIALIZE JSPSYCH ====================
@@ -143,24 +129,24 @@
     let setAssignment = Math.random() < 0.5 ? 'normal' : 'swapped';
     let listType = Math.random() < 0.5 ? 'A' : 'B';
     let keyMapping = Math.random() < 0.5 ? 'original' : 'swapped';
-    console.log(`blockOrder=${blockOrder}, setAssignment=${setAssignment}, listType=${listType}, keys=${keyMapping}`);
+    console.log("blockOrder=" + blockOrder + ", setAssignment=" + setAssignment + ", listType=" + listType + ", keys=" + keyMapping);
 
     let totalQuestions = 0;
     let questionsAnswered = 0;
     let counterDiv = null;
-    function createCounter() { counterDiv = document.createElement('div'); counterDiv.className = 'counter'; counterDiv.textContent = `Progress: 0 / ${totalQuestions}`; document.body.appendChild(counterDiv); }
-    function updateCounter() { if (counterDiv) counterDiv.textContent = `Progress: ${questionsAnswered} / ${totalQuestions}`; }
+    function createCounter() { counterDiv = document.createElement('div'); counterDiv.className = 'counter'; counterDiv.textContent = "Progress: 0 / " + totalQuestions; document.body.appendChild(counterDiv); }
+    function updateCounter() { if (counterDiv) counterDiv.textContent = "Progress: " + questionsAnswered + " / " + totalQuestions; }
     function incrementCounter() { questionsAnswered++; updateCounter(); }
 
-    const autoParticipantID = `auto_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const autoParticipantID = "auto_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
     const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbw_QpDtAlebJz6RRv5AR9iosfugDPAJux3OcrXuaXDkHFvhfzmxvlMBXvQaZDJOiHbx/exec";
     
     function sendToGoogleSheets(dataRow) {
       fetch(GOOGLE_SHEETS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dataRow) })
-        .catch(err => console.error("Send error:", err));
+        .catch(function(err) { console.error("Send error:", err); });
     }
 
-    // ==================== STIMULI (FULL ARRAYS) ====================
+    // ==================== STIMULI ====================
     const practiceTrials = [
       { sentence: "The manager of the employees who was reading a book stayed late.", question: "Who was reading a book? FIRST noun (manager) or SECOND noun (employees)?", correct: "NP1" },
       { sentence: "The supervisor of the workers who were arguing in the hallway called security.", question: "Who was arguing in the hallway? FIRST noun (supervisor) or SECOND noun (workers)?", correct: "NP2" },
@@ -205,7 +191,11 @@
 
     const experimentalItems = [];
     for (let i = 0; i < rawPairs.length; i++) {
-      const [ha, la, q, correctHA, correctLA] = rawPairs[i];
+      const ha = rawPairs[i][0];
+      const la = rawPairs[i][1];
+      const q = rawPairs[i][2];
+      const correctHA = rawPairs[i][3];
+      const correctLA = rawPairs[i][4];
       let sentence, correct;
       if (listType === 'A') {
         if (i < 16) { sentence = ha; correct = correctHA; }
@@ -214,7 +204,7 @@
         if (i < 16) { sentence = la; correct = correctLA; }
         else { sentence = ha; correct = correctHA; }
       }
-      experimentalItems.push({ sentence, question: q, correct, type: 'pair' });
+      experimentalItems.push({ sentence: sentence, question: q, correct: correct, type: 'pair' });
     }
 
     const ambiguousRaw = [
@@ -251,7 +241,10 @@
       ["The supervisor of the colleague who was fixing the computer stayed late.", "Who was fixing the computer? FIRST noun (supervisor) or SECOND noun (colleague)?"],
       ["The nephew of the neighbor who was painting the mural arrived at noon.", "Who was painting the mural? FIRST noun (nephew) or SECOND noun (neighbor)?"]
     ];
-    const ambiguousItems = ambiguousRaw.map(([s, q]) => ({ sentence: s, question: q, correct: null, type: 'ambiguous' }));
+    const ambiguousItems = [];
+    for (var i = 0; i < ambiguousRaw.length; i++) {
+      ambiguousItems.push({ sentence: ambiguousRaw[i][0], question: ambiguousRaw[i][1], correct: null, type: 'ambiguous' });
+    }
 
     const fillerRaw = [
       ["The teacher scolded the student who was late for class.", "Who was late for class? FIRST noun (teacher) or SECOND noun (student)?", "NP2"],
@@ -275,7 +268,10 @@
       ["The waiter served the couple who ordered the special dish.", "Who ordered the special dish? FIRST noun (waiter) or SECOND noun (couple)?", "NP2"],
       ["The neighbor heard the noise that came from the basement.", "What came from the basement? FIRST noun (neighbor) or SECOND noun (noise)?", "NP2"]
     ];
-    const fillers = fillerRaw.map(([s, q, c]) => ({ sentence: s, question: q, correct: c, type: 'filler' }));
+    const fillers = [];
+    for (var i = 0; i < fillerRaw.length; i++) {
+      fillers.push({ sentence: fillerRaw[i][0], question: fillerRaw[i][1], correct: fillerRaw[i][2], type: 'filler' });
+    }
 
     const catchTrialsPool = [
       { sentence: "The sun is a star, but the moon is not a star.", question: "Which is a star? FIRST noun (sun) or SECOND noun (moon)?", correct: "NP1", type: 'catch' },
@@ -295,27 +291,45 @@
       [9,8,4,5], [5,7,6,2], [4,1,3,8], [6,5,9,7], [2,3,1,9], [8,7,5,9], [3,6,2,4], [7,4,8,6], [1,9,6,5], [5,2,8,3]
     ];
 
-    function shuffleDigits(arr) { let copy = [...arr]; for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; } return copy; }
-    function shuffle(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+    function shuffleDigits(arr) { 
+      let copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) { 
+        const j = Math.floor(Math.random() * (i + 1)); 
+        let temp = copy[i];
+        copy[i] = copy[j];
+        copy[j] = temp;
+      } 
+      return copy; 
+    }
+    
+    function shuffle(arr) { 
+      for (let i = arr.length - 1; i > 0; i--) { 
+        const j = Math.floor(Math.random() * (i + 1)); 
+        let temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+      } 
+      return arr; 
+    }
 
     // Create two matched sets
-    const shuffledExp = shuffle([...experimentalItems]);
+    const shuffledExp = shuffle(experimentalItems.slice());
     const expSet1 = shuffledExp.slice(0, 16);
     const expSet2 = shuffledExp.slice(16, 32);
-    const shuffledAmbig = shuffle([...ambiguousItems]);
+    const shuffledAmbig = shuffle(ambiguousItems.slice());
     const ambigSet1 = shuffledAmbig.slice(0, 16);
     const ambigSet2 = shuffledAmbig.slice(16, 32);
-    const shuffledFillers = shuffle([...fillers]);
+    const shuffledFillers = shuffle(fillers.slice());
     const fillerSet1 = shuffledFillers.slice(0, 10);
     const fillerSet2 = shuffledFillers.slice(10, 20);
-    const completeSet1 = shuffle([...expSet1, ...ambigSet1, ...fillerSet1]);
-    const completeSet2 = shuffle([...expSet2, ...ambigSet2, ...fillerSet2]);
+    const completeSet1 = shuffle(expSet1.concat(ambigSet1).concat(fillerSet1));
+    const completeSet2 = shuffle(expSet2.concat(ambigSet2).concat(fillerSet2));
     let baselineSetRaw, dualSetRaw;
-    if (setAssignment === 'normal') { baselineSetRaw = [...completeSet1]; dualSetRaw = [...completeSet2]; }
-    else { baselineSetRaw = [...completeSet2]; dualSetRaw = [...completeSet1]; }
+    if (setAssignment === 'normal') { baselineSetRaw = completeSet1.slice(); dualSetRaw = completeSet2.slice(); }
+    else { baselineSetRaw = completeSet2.slice(); dualSetRaw = completeSet1.slice(); }
     
     function insertCatchTrials(itemArray, catchTrials, positions) {
-      const result = [...itemArray];
+      const result = itemArray.slice();
       for (let i = positions.length - 1; i >= 0; i--) {
         const idx = positions[i];
         if (idx >= 0 && idx <= result.length) result.splice(idx, 0, catchTrials[i]);
@@ -330,24 +344,37 @@
     totalQuestions = totalPractice + totalMain;
 
     // Store demographic data for access across trials
-    let storedDemographics = {};
+    let storedDemographics = {
+      participant: '',
+      age: '',
+      gender: '',
+      education: '',
+      handedness: '',
+      native_language: '',
+      country_of_residence: 'N/A',
+      other_languages: '',
+      years_english: 'N/A',
+      proficiency: 'N/A'
+    };
 
     function getDemographicData() {
       return storedDemographics;
     }
 
     // ==================== TRIAL COMPONENTS ====================
-    function makeBaselineComponents(item, trialNum, block, isPractice = false) {
+    function makeBaselineComponents(item, trialNum, block, isPractice) {
+      if (isPractice === undefined) isPractice = false;
+      
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS", data: { trial_type: 'fixation' } };
-      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div class="sentence-text">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
+      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="sentence-text">' + item.sentence + '</div>', trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
       
       let answered = false;
       const ques = {
         type: jsPsychHtmlKeyboardResponse,
-        stimulus: `<div style="font-size:32px; text-align:center; line-height:1.4;">${item.question}</div>`,
+        stimulus: '<div style="font-size:32px; text-align:center; line-height:1.4;">' + item.question + '</div>',
         choices: ['c', 'm'],
-        prompt: () => (keyMapping === 'original') ? '<p style="font-size:24px; line-height:1.4;">🔹 C = FIRST noun &nbsp;&nbsp; 🔹 M = SECOND noun</p>' : '<p style="font-size:24px; line-height:1.4;">🔹 C = SECOND noun &nbsp;&nbsp; 🔹 M = FIRST noun</p>',
-        on_finish: (data) => {
+        prompt: (keyMapping === 'original') ? '<p style="font-size:24px; line-height:1.4;">🔹 C = FIRST noun &nbsp;&nbsp; 🔹 M = SECOND noun</p>' : '<p style="font-size:24px; line-height:1.4;">🔹 C = SECOND noun &nbsp;&nbsp; 🔹 M = FIRST noun</p>',
+        on_finish: function(data) {
           if (answered) return;
           answered = true;
           
@@ -394,34 +421,35 @@
       return [fix, sent, ques, blank];
     }
     
-    function makeDualComponents(item, trialNum, block, digitPool, usedSet, isPractice = false) {
+    function makeDualComponents(item, trialNum, block, digitPool, usedSet, isPractice) {
+      if (isPractice === undefined) isPractice = false;
       let currentDigits = null;
       let comprehensionData = null;
       
       const digPres = {
         type: jsPsychHtmlKeyboardResponse,
-        stimulus: () => {
-          let avail = digitPool.filter(s => !usedSet.has(JSON.stringify(s)));
+        stimulus: function() {
+          let avail = digitPool.filter(function(s) { return !usedSet.has(JSON.stringify(s)); });
           if (avail.length === 0) { usedSet.clear(); currentDigits = digitPool[Math.floor(Math.random() * digitPool.length)]; }
           else { currentDigits = avail[Math.floor(Math.random() * avail.length)]; }
           usedSet.add(JSON.stringify(currentDigits));
-          return `<div style="text-align:center; margin-top:22vh;"><div class="digit-label">🔢 Remember these digits</div><div class="digit-memory">${currentDigits.join(' ')}</div></div>`;
+          return '<div style="text-align:center; margin-top:22vh;"><div class="digit-label">🔢 Remember these digits</div><div class="digit-memory">' + currentDigits.join(' ') + '</div></div>';
         },
         trial_duration: 2000,
         choices: "NO_KEYS",
-        data: () => ({ trial_type: 'digit_presentation', digit_sequence: currentDigits ? currentDigits.join('') : '' })
+        data: function() { return { trial_type: 'digit_presentation', digit_sequence: currentDigits ? currentDigits.join('') : '' }; }
       };
       const blank1 = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div></div>', trial_duration: 500, choices: "NO_KEYS" };
       const fix = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS" };
-      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div class="sentence-text">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
+      const sent = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="sentence-text">' + item.sentence + '</div>', trial_duration: 5000, choices: "NO_KEYS", data: { trial_type: 'sentence' } };
       
       let answered = false;
       const ques = {
         type: jsPsychHtmlKeyboardResponse,
-        stimulus: `<div style="font-size:32px; text-align:center; line-height:1.4;">${item.question}</div>`,
+        stimulus: '<div style="font-size:32px; text-align:center; line-height:1.4;">' + item.question + '</div>',
         choices: ['c', 'm'],
-        prompt: () => (keyMapping === 'original') ? '<p style="font-size:24px; line-height:1.4;">🔹 C = FIRST noun &nbsp;&nbsp; 🔹 M = SECOND noun</p>' : '<p style="font-size:24px; line-height:1.4;">🔹 C = SECOND noun &nbsp;&nbsp; 🔹 M = FIRST noun</p>',
-        on_finish: (data) => {
+        prompt: (keyMapping === 'original') ? '<p style="font-size:24px; line-height:1.4;">🔹 C = FIRST noun &nbsp;&nbsp; 🔹 M = SECOND noun</p>' : '<p style="font-size:24px; line-height:1.4;">🔹 C = SECOND noun &nbsp;&nbsp; 🔹 M = FIRST noun</p>',
+        on_finish: function(data) {
           if (answered) return;
           answered = true;
           
@@ -467,17 +495,17 @@
       };
       const recallTrial = {
         type: jsPsychSurveyHtmlForm,
-        html: `<div style="text-align:center;">
-          <p style="font-size:28px; line-height:1.5;">Enter the 4 digits in the same order:</p>
-          <input type="text" name="recall" pattern="[0-9]{4}" inputmode="numeric" placeholder="e.g., 5271" required class="recall-input" id="digitRecallInput" autofocus>
-          <p style="margin-top:20px; font-size:20px;">Press Enter or click Submit</p>
-        </div>`,
-        on_finish: (data) => {
+        html: '<div style="text-align:center;">' +
+          '<p style="font-size:28px; line-height:1.5;">Enter the 4 digits in the same order:</p>' +
+          '<input type="text" name="recall" pattern="[0-9]{4}" inputmode="numeric" placeholder="e.g., 5271" required class="recall-input" id="digitRecallInput" autofocus>' +
+          '<p style="margin-top:20px; font-size:20px;">Press Enter or click Submit</p>' +
+        '</div>',
+        on_finish: function(data) {
           const recalled = data.response.recall || '';
           const presented = currentDigits ? currentDigits.join('') : '';
           const recCorrect = (presented === recalled);
           if (comprehensionData) {
-            const recallRow = { ...comprehensionData, recall_correct: recCorrect, recalled_digits: recalled, recall_rt: data.rt, is_recall_row: true };
+            const recallRow = Object.assign({}, comprehensionData, { recall_correct: recCorrect, recalled_digits: recalled, recall_rt: data.rt, is_recall_row: true });
             sendToGoogleSheets(recallRow);
           } else {
             sendToGoogleSheets({ trial_num: trialNum, block: block, recall_correct: recCorrect, recalled_digits: recalled, recall_rt: data.rt, is_recall_row: true, auto_participant_id: autoParticipantID, prolific_id: PROLIFIC_ID, prolific_id_hash: PROLIFIC_ID_HASH, group: GROUP });
@@ -490,17 +518,17 @@
       if (isPractice) {
         const recallFeedback = {
           type: jsPsychHtmlKeyboardResponse,
-          stimulus: () => { const correct = window.lastRecallCorrect; return correct ? '<div class="feedback-digit">✓ Digit recall: correct</div>' : '<div class="feedback-digit">✗ Digit recall: incorrect</div>'; },
+          stimulus: function() { const correct = window.lastRecallCorrect; return correct ? '<div class="feedback-digit">✓ Digit recall: correct</div>' : '<div class="feedback-digit">✗ Digit recall: incorrect</div>'; },
           trial_duration: 1000,
           choices: "NO_KEYS",
-          on_finish: () => { window.lastRecallCorrect = null; }
+          on_finish: function() { window.lastRecallCorrect = null; }
         };
         const compFeedback = {
           type: jsPsychHtmlKeyboardResponse,
-          stimulus: () => { const last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Comprehension correct!</div>' : `<div class="feedback-incorrect">✗ Comprehension correct answer: ${last.correctAnswer}</div>`; },
+          stimulus: function() { const last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Comprehension correct!</div>' : '<div class="feedback-incorrect">✗ Comprehension correct answer: ' + last.correctAnswer + '</div>'; },
           trial_duration: 1500,
           choices: "NO_KEYS",
-          on_finish: () => { window.lastPractice = null; }
+          on_finish: function() { window.lastPractice = null; }
         };
         return [digPres, blank1, fix, sent, ques, recallTrial, compFeedback, recallFeedback, blankEnd];
       } else {
@@ -508,126 +536,113 @@
       }
     }
     
-    // ==================== DEMOGRAPHICS TRIAL (GROUP-DEPENDENT) ====================
+    // ==================== DEMOGRAPHICS TRIAL ====================
+    let demographicsHtml = '<div class="demographics-compact">' +
+      '<h3 style="text-align:center; grid-column: span 2; margin-top: 0;">Participant Information</h3>' +
+      '<div class="form-group">' +
+      '<label>Participant ID (create a non-identifying ID, e.g., BlueTiger27):</label>' +
+      '<input type="text" id="participant" name="participant" required placeholder="e.g., BlueTiger27">' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label>Age:</label>' +
+      '<input type="number" id="age" name="age" required>' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label>Gender:</label>' +
+      '<select id="gender" name="gender" required>' +
+      '<option value="">--Select--</option>' +
+      '<option>Female</option>' +
+      '<option>Male</option>' +
+      '<option>Non-binary</option>' +
+      '</select>' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label>Highest academic level:</label>' +
+      '<input type="text" id="education" name="education" required placeholder="e.g., Bachelor, Master, PhD">' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label>Handedness:</label>' +
+      '<select id="handedness" name="handedness" required>' +
+      '<option value="">--Select--</option>' +
+      '<option>Right-handed</option>' +
+      '<option>Left-handed</option>' +
+      '<option>Ambidextrous</option>' +
+      '</select>' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label>Native language:</label>' +
+      '<input type="text" id="native_language" name="native_language" required placeholder="e.g., English, Arabic, French">' +
+      '</div>';
+    
+    if (GROUP === 'native') {
+      demographicsHtml += '<div class="form-group full-width">' +
+        '<label>Country of residence:</label>' +
+        '<select id="country" name="country" required>' +
+        '<option value="">--Select--</option>' +
+        '<option value="United Kingdom">United Kingdom</option>' +
+        '<option value="United States">United States</option>' +
+        '<option value="Canada">Canada</option>' +
+        '<option value="Australia">Australia</option>' +
+        '<option value="New Zealand">New Zealand</option>' +
+        '<option value="Ireland">Ireland</option>' +
+        '<option value="Other">Other (please specify below)</option>' +
+        '</select>' +
+        '</div>' +
+        '<div class="form-group full-width" id="otherCountryGroup" style="display:none;">' +
+        '<label>Please specify your country:</label>' +
+        '<input type="text" id="other_country" name="other_country" placeholder="e.g., South Africa">' +
+        '</div>';
+    }
+    
+    if (GROUP === 'EFL') {
+      demographicsHtml += '<div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px 30px;">' +
+        '<div class="form-group">' +
+        '<label>Years of formal English study:</label>' +
+        '<input type="number" id="years_english" name="years_english" min="0" step="1" required placeholder="e.g., 10">' +
+        '</div>' +
+        '<div class="form-group">' +
+        '<label>Self-rated English proficiency (1 = beginner, 7 = native-like):</label>' +
+        '<select id="proficiency" name="proficiency" required>' +
+        '<option value="">--Select--</option>' +
+        '<option value="1">1 – Very beginner</option>' +
+        '<option value="2">2</option>' +
+        '<option value="3">3 – Intermediate</option>' +
+        '<option value="4">4</option>' +
+        '<option value="5">5 – Advanced</option>' +
+        '<option value="6">6</option>' +
+        '<option value="7">7 – Native-like</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>';
+    }
+    
+    demographicsHtml += '<div class="form-group full-width">' +
+      '<label>Other languages (please specify):</label>' +
+      '<input type="text" id="lang_other_text" name="lang_other_text" placeholder="e.g., Italian, Portuguese">' +
+      '</div>' +
+      '</div>';
+    
+    if (GROUP === 'native') {
+      demographicsHtml += '<script>' +
+        'document.getElementById("country").addEventListener("change", function() {' +
+        'var otherGroup = document.getElementById("otherCountryGroup");' +
+        'if (this.value === "Other") { otherGroup.style.display = "flex"; }' +
+        'else { otherGroup.style.display = "none"; }' +
+        '});' +
+        '</script>';
+    }
+    
     const demographicsTrial = {
       type: jsPsychSurveyHtmlForm,
-      html: `
-        <div class="demographics-compact">
-          <h3 style="text-align:center; grid-column: span 2; margin-top: 0;">Participant Information</h3>
-          
-          <div class="form-group">
-            <label>Participant ID (create a non‑identifying ID, e.g., BlueTiger27):</label>
-            <input type="text" id="participant" name="participant" required placeholder="e.g., BlueTiger27">
-          </div>
-          
-          <div class="form-group">
-            <label>Age:</label>
-            <input type="number" id="age" name="age" required>
-          </div>
-          
-          <div class="form-group">
-            <label>Gender:</label>
-            <select id="gender" name="gender" required>
-              <option value="">--Select--</option>
-              <option>Female</option>
-              <option>Male</option>
-              <option>Non-binary</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label>Highest academic level:</label>
-            <input type="text" id="education" name="education" required placeholder="e.g., Bachelor, Master, PhD">
-          </div>
-          
-          <div class="form-group">
-            <label>Handedness:</label>
-            <select id="handedness" name="handedness" required>
-              <option value="">--Select--</option>
-              <option>Right-handed</option>
-              <option>Left-handed</option>
-              <option>Ambidextrous</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label>Native language:</label>
-            <input type="text" id="native_language" name="native_language" required placeholder="e.g., English, Arabic, French">
-          </div>
-
-          ${GROUP === 'native' ? `
-          <div class="form-group full-width">
-            <label>Country of residence:</label>
-            <select id="country" name="country" required>
-              <option value="">--Select--</option>
-              <option value="United Kingdom">United Kingdom</option>
-              <option value="United States">United States</option>
-              <option value="Canada">Canada</option>
-              <option value="Australia">Australia</option>
-              <option value="New Zealand">New Zealand</option>
-              <option value="Ireland">Ireland</option>
-              <option value="Other">Other (please specify below)</option>
-            </select>
-          </div>
-          <div class="form-group full-width" id="otherCountryGroup" style="display:none;">
-            <label>Please specify your country:</label>
-            <input type="text" id="other_country" name="other_country" placeholder="e.g., South Africa">
-          </div>
-          <script>
-            (function() {
-              const countrySelect = document.getElementById('country');
-              if (countrySelect) {
-                countrySelect.addEventListener('change', function() {
-                  const otherGroup = document.getElementById('otherCountryGroup');
-                  if (this.value === 'Other') {
-                    otherGroup.style.display = 'flex';
-                  } else {
-                    otherGroup.style.display = 'none';
-                  }
-                });
-              }
-            })();
-          </script>
-          ` : ``}
-
-          ${GROUP === 'EFL' ? `
-          <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px 30px;">
-            <div class="form-group">
-              <label>Years of formal English study:</label>
-              <input type="number" id="years_english" name="years_english" min="0" step="1" required placeholder="e.g., 10">
-            </div>
-            <div class="form-group">
-              <label>Self‑rated English proficiency (1 = beginner, 7 = native‑like):</label>
-              <select id="proficiency" name="proficiency" required>
-                <option value="">--Select--</option>
-                <option value="1">1 – Very beginner</option>
-                <option value="2">2</option>
-                <option value="3">3 – Intermediate</option>
-                <option value="4">4</option>
-                <option value="5">5 – Advanced</option>
-                <option value="6">6</option>
-                <option value="7">7 – Native‑like</option>
-              </select>
-            </div>
-          </div>
-          ` : ``}
-          
-          <div class="form-group full-width">
-            <label>Other languages (please specify):</label>
-            <input type="text" id="lang_other_text" name="lang_other_text" placeholder="e.g., Italian, Portuguese">
-          </div>
-        </div>
-      `,
+      html: demographicsHtml,
       on_finish: function(data) {
         const response = data.response;
         
-        // For native group, combine country fields
         let countryValue = 'N/A';
         if (GROUP === 'native') {
           countryValue = response.country === 'Other' ? response.other_country : response.country;
         }
         
-        // Store demographics for access across trials
         storedDemographics = {
           participant: response.participant,
           age: response.age,
@@ -666,26 +681,26 @@
     // Consent Form
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
-      stimulus: `<div class="consent-card">
-        <h3>PARTICIPANT INFORMATION AND CONSENT FORM</h3>
-        <p>You are invited to participate in a research study on <strong>sentence comprehension</strong>.</p>
-        <p>The task involves reading sentences and answering questions. The experiment will take approximately <strong>20 minutes</strong> to complete.</p>
-        <p><strong>Participation is voluntary.</strong> You may stop the experiment and close your browser at any time without penalty. Any responses you have already submitted before exiting will still be stored, but you may request deletion afterward using your Participant ID.</p>
-        <p>This study involves no known risks beyond those encountered in everyday computer use. While there is no direct benefit to participants, the study may contribute to research on language processing.</p>
-        <div class="highlight">
-          <p><strong>No personal identifying information (such as your name or email address) will be collected.</strong> You will be asked to create a non‑identifying Participant ID of your choice (for example, <em>BlueTiger27</em>). Please do not use your real name. <strong>Keep this ID</strong> – you will need it if you later wish to request deletion of your data.</p>
-        </div>
-        <p>Your responses will be stored securely in a password‑protected Google Sheet accessible only to the researcher through an institutionally affiliated email account.</p>
-        <p>After completing the experiment, you may request deletion of your data by emailing <strong>i.zeddari@um5r.ac.ma</strong> and providing your Participant ID.</p>
-        <p>If you have any questions about this study, please contact: <strong>i.zeddari@um5r.ac.ma</strong></p>
-        <p><strong>By continuing, you confirm that:</strong><br> • you are voluntarily agreeing to participate;<br> • you are at least 18 years old.</p>
-        <div class="agreement">
-          Do you agree to participate?<br>
-          Press <span class="btn-prompt">C</span> for Yes &nbsp;&nbsp;&nbsp; Press <span class="btn-prompt">M</span> for No
-        </div>
-      </div>`,
+      stimulus: '<div class="consent-card">' +
+        '<h3>PARTICIPANT INFORMATION AND CONSENT FORM</h3>' +
+        '<p>You are invited to participate in a research study on <strong>sentence comprehension</strong>.</p>' +
+        '<p>The task involves reading sentences and answering questions. The experiment will take approximately <strong>20 minutes</strong> to complete.</p>' +
+        '<p><strong>Participation is voluntary.</strong> You may stop the experiment and close your browser at any time without penalty. Any responses you have already submitted before exiting will still be stored, but you may request deletion afterward using your Participant ID.</p>' +
+        '<p>This study involves no known risks beyond those encountered in everyday computer use. While there is no direct benefit to participants, the study may contribute to research on language processing.</p>' +
+        '<div class="highlight">' +
+        '<p><strong>No personal identifying information (such as your name or email address) will be collected.</strong> You will be asked to create a non-identifying Participant ID of your choice (for example, <em>BlueTiger27</em>). Please do not use your real name. <strong>Keep this ID</strong> – you will need it if you later wish to request deletion of your data.</p>' +
+        '</div>' +
+        '<p>Your responses will be stored securely in a password-protected Google Sheet accessible only to the researcher through an institutionally affiliated email account.</p>' +
+        '<p>After completing the experiment, you may request deletion of your data by emailing <strong>i.zeddari@um5r.ac.ma</strong> and providing your Participant ID.</p>' +
+        '<p>If you have any questions about this study, please contact: <strong>i.zeddari@um5r.ac.ma</strong></p>' +
+        '<p><strong>By continuing, you confirm that:</strong><br> • you are voluntarily agreeing to participate;<br> • you are at least 18 years old.</p>' +
+        '<div class="agreement">' +
+        'Do you agree to participate?<br>' +
+        'Press <span class="btn-prompt">C</span> for Yes &nbsp;&nbsp;&nbsp; Press <span class="btn-prompt">M</span> for No' +
+        '</div>' +
+        '</div>',
       choices: ['c', 'm'],
-      on_finish: (data) => {
+      on_finish: function(data) {
         if (data.response !== 'c') {
           jsPsych.endExperiment('You have declined to participate. Thank you for your time.');
         }
@@ -696,7 +711,7 @@
     
     timeline.push({ 
       type: jsPsychCallFunction, 
-      func: () => { 
+      func: function() { 
         jsPsych.data.addProperties({ 
           list_type: listType, 
           key_mapping: keyMapping, 
@@ -711,35 +726,44 @@
     
     timeline.push({ 
       type: jsPsychHtmlKeyboardResponse, 
-      stimulus: () => {
+      stimulus: function() {
         const bindingInfo = (keyMapping === 'original') ? 'C = FIRST noun, M = SECOND noun' : 'C = SECOND noun, M = FIRST noun';
-        return `<div class="instruction-text"><h2>Instructions</h2><p>You will see a sentence for 5 seconds, then a question. Press <strong>C</strong> or <strong>M</strong>.</p><p><strong>${bindingInfo}</strong></p><p>The experiment has two parts. Each part starts with a short practice.</p><p>Press SPACE to begin.</p></div>`;
+        return '<div class="instruction-text"><h2>Instructions</h2><p>You will see a sentence for 5 seconds, then a question. Press <strong>C</strong> or <strong>M</strong>.</p><p><strong>' + bindingInfo + '</strong></p><p>The experiment has two parts. Each part starts with a short practice.</p><p>Press SPACE to begin.</p></div>';
       }, 
       choices: [' '] 
     });
     
-    timeline.push({ type: jsPsychCallFunction, func: () => createCounter() });
+    timeline.push({ type: jsPsychCallFunction, func: function() { createCounter(); } });
     
     function addBaselineBlock() {
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Part with sentences only – practice<br><br>Press SPACE</div>', choices: [' '] });
       for (let i = 0; i < practiceTrials.length; i++) {
         let comps = makeBaselineComponents(practiceTrials[i], i + 1, 'practice_baseline', true);
-        let fb = { type: jsPsychHtmlKeyboardResponse, stimulus: () => { let last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : `<div class="feedback-incorrect">✗ Correct answer: ${last.correctAnswer}</div>`; }, trial_duration: 1500, choices: "NO_KEYS" };
-        timeline.push(...comps.slice(0, 3), fb, comps[3]);
+        let fb = { type: jsPsychHtmlKeyboardResponse, stimulus: function() { let last = window.lastPractice; if (!last) return ''; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : '<div class="feedback-incorrect">✗ Correct answer: ' + last.correctAnswer + '</div>'; }, trial_duration: 1500, choices: "NO_KEYS" };
+        timeline.push(comps[0], comps[1], comps[2], fb, comps[3]);
       }
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Now the main sentences (no digits)<br><br>Press SPACE</div>', choices: [' '] });
-      for (let i = 0; i < baselineSet.length; i++) timeline.push(...makeBaselineComponents(baselineSet[i], i + 1, 'baseline_main', false));
+      for (let i = 0; i < baselineSet.length; i++) {
+        let comps = makeBaselineComponents(baselineSet[i], i + 1, 'baseline_main', false);
+        timeline.push(comps[0], comps[1], comps[2], comps[3]);
+      }
     }
     
     function addDualBlock() {
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:32px;">Part with digit memory task – practice<br><br>You will see 4 digits, then sentence, then answer, then type the digits.<br>After each trial you will see feedback for digit recall and comprehension.<br><br>Press SPACE</div>', choices: [' '] });
       let practiceUsed = new Set();
-      let practicePool = shuffleDigits([...digitSequences]);
-      for (let i = 0; i < practiceTrials.length; i++) timeline.push(...makeDualComponents(practiceTrials[i], i + 1, 'dual_practice', practicePool, practiceUsed, true));
+      let practicePool = shuffleDigits(digitSequences.slice());
+      for (let i = 0; i < practiceTrials.length; i++) {
+        let comps = makeDualComponents(practiceTrials[i], i + 1, 'dual_practice', practicePool, practiceUsed, true);
+        for (let j = 0; j < comps.length; j++) timeline.push(comps[j]);
+      }
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="instruction-text" style="font-size:36px;">Now the main sentences with digit memory task<br><br>Remember the digits, read the sentence, answer, then type the digits.<br><br>Press SPACE</div>', choices: [' '] });
       let mainUsed = new Set();
-      let mainPool = shuffleDigits([...digitSequences]);
-      for (let i = 0; i < dualSet.length; i++) timeline.push(...makeDualComponents(dualSet[i], i + 1, 'dual_main', mainPool, mainUsed, false));
+      let mainPool = shuffleDigits(digitSequences.slice());
+      for (let i = 0; i < dualSet.length; i++) {
+        let comps = makeDualComponents(dualSet[i], i + 1, 'dual_main', mainPool, mainUsed, false);
+        for (let j = 0; j < comps.length; j++) timeline.push(comps[j]);
+      }
     }
     
     if (blockOrder === 'baseline_first') { 
@@ -753,16 +777,15 @@
     // ==================== COMPLETION WITH PROLIFIC REDIRECT ====================
     timeline.push({
         type: jsPsychHtmlKeyboardResponse,
-        stimulus: `<div style="font-size:48px; text-align:center; line-height:1.5; margin-top:30vh;">
-            Experiment complete!<br><br>
-            Thank you for participating.<br><br>
-            You will be redirected back to Prolific in 5 seconds.<br><br>
-            Your Participant ID: <strong>${autoParticipantID}</strong>
-        </div>`,
+        stimulus: '<div style="font-size:48px; text-align:center; line-height:1.5; margin-top:30vh;">' +
+            'Experiment complete!<br><br>' +
+            'Thank you for participating.<br><br>' +
+            'You will be redirected back to Prolific in 5 seconds.<br><br>' +
+            'Your Participant ID: <strong>' + autoParticipantID + '</strong>' +
+            '</div>',
         choices: "NO_KEYS",
         trial_duration: 5000,
         on_finish: function() {
-            // PROLIFIC REDIRECT URL
             window.location.href = 'https://app.prolific.com/submissions/complete?cc=CHM4TOHY';
         }
     });
