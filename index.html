@@ -84,12 +84,11 @@
     // ==================== GET PARAMETERS FROM URL ====================
     const urlParams = new URLSearchParams(window.location.search);
     const GROUP = urlParams.get('group');
-    const PROLIFIC_ID = urlParams.get('prolific_id') || null;  // Only present for native group
+    const PROLIFIC_ID = urlParams.get('prolific_id') || null;
     
-    // Optional: Simple hash for privacy (non-cryptographic but sufficient for duplicate detection)
+    // Simple hash for privacy (non-cryptographic but sufficient for duplicate detection)
     let PROLIFIC_ID_HASH = null;
     if (PROLIFIC_ID) {
-      // Simple hash function for duplicate detection (not cryptographic, but prevents raw ID storage)
       let hash = 0;
       for (let i = 0; i < PROLIFIC_ID.length; i++) {
         const char = PROLIFIC_ID.charCodeAt(i);
@@ -692,7 +691,22 @@
       addBaselineBlock(); 
     }
     
-    timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:48px; text-align:center; line-height:1.5; margin-top:30vh;">Experiment complete!<br><br>Thank you for participating.<br><br>Your Participant ID: <strong>${autoParticipantID}</strong><br>Save this ID if you wish to request data deletion.<br><br>You may close this window.</div>`, choices: [' '] });
+    // ==================== COMPLETION WITH PROLIFIC REDIRECT ====================
+    timeline.push({
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `<div style="font-size:48px; text-align:center; line-height:1.5; margin-top:30vh;">
+            Experiment complete!<br><br>
+            Thank you for participating.<br><br>
+            You will be redirected back to Prolific in 5 seconds.<br><br>
+            Your Participant ID: <strong>${autoParticipantID}</strong>
+        </div>`,
+        choices: "NO_KEYS",
+        trial_duration: 5000,
+        on_finish: function() {
+            // PROLIFIC REDIRECT URL
+            window.location.href = 'https://app.prolific.com/submissions/complete?cc=CHM4TOHY';
+        }
+    });
     
     jsPsych.run(timeline);
   });
